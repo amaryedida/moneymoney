@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/textViewPreviousInvestmentDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Date"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/textViewPreviousInvestmentCurrency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Currency"
+        android:textSize="14sp"
+        android:layout_marginStart="16dp" />
+
+    <TextView
+        android:id="@+id/textViewPreviousInvestmentValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Value"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginStart="8dp" />
+
+    <TextView
+        android:id="@+id/textViewPreviousInvestmentCategory"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Category"
+        android:textSize="14sp"
+        android:layout_marginStart="16dp" />
+
+    <TextView
+        android:id="@+id/textViewPreviousInvestmentGoal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Goal"
+        android:textSize="14sp"
+        android:layout_marginStart="16dp"
+        android:visibility="gone" />
+
+</LinearLayout>

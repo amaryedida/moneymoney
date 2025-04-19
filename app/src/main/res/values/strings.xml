@@ -1,0 +1,50 @@
+
+<resources>
+<string name="app_name">Money Money</string>
+
+<array name="currencies">
+    <item>AED</item>
+    <item>INR</item>
+</array>
+
+<array name="income_categories">
+    <item>Salary</item>
+    <item>Business Income</item>
+    <item>Interest Income</item>
+    <item>Mutual Fund Income</item>
+    <item>Stocks/ETF Income</item>
+    <item>Other Income</item>
+</array>
+    <array name="expense_categories">
+        <item>Food</item>
+        <item>Groceries</item>
+        <item>Dining Out</item>
+        <item>Transportation</item>
+        <item>Utilities</item>
+        <item>Rent</item>
+        <item>Entertainment</item>
+        <item>Healthcare</item>
+        <item>Shopping</item>
+        <item>Travel</item>
+        <item>Leisure</item>
+        <item>Insurance</item>
+        <item>Education</item>
+        <item>Child care</item>
+        <item>Credit Card Payments</item>
+        <item>Business Expenses</item>
+        <item>Loans</item>
+        <item>Household Maintenance</item>
+        <item>Other Expenses</item>
+    </array>
+    <array name="investment_categories">
+        <item>Fixed Deposits</item>
+        <item>Recurring Deposits</item>
+        <item>Stocks</item>
+        <item>Mutual Funds</item>
+        <item>ETFs</item>
+        <item>Bonds</item>
+        <item>Real Estate</item>
+        <item>Cryptocurrency</item>
+        <item>Other Investments</item>
+    </array>
+</resources>
