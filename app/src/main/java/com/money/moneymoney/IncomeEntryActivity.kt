@@ -3,6 +3,7 @@ package com.money.moneymoney
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
@@ -17,39 +18,44 @@ import java.util.Locale
 
 class IncomeEntryActivity : AppCompatActivity() {
 
-    private lateinit var editTextDate: EditText
-    private lateinit var editTextValue: EditText
-    private lateinit var spinnerCurrency: Spinner
-    private lateinit var spinnerCategory: Spinner
-    private lateinit var editTextComment: EditText
+    companion object {
+        private const val TAG = "IncomeEntryActivity"
+    }
+
+    private lateinit var editTextIncomeDate: EditText
+    private lateinit var editTextIncomeValue: EditText
+    private lateinit var spinnerIncomeCurrency: Spinner
+    private lateinit var spinnerIncomeCategory: Spinner
+    private lateinit var editTextIncomeComment: EditText
     private lateinit var buttonSaveIncome: Button
     private lateinit var bottomNavigationView: BottomNavigationView
-    private lateinit var textViewPreviousIncomes: TextView
-    private lateinit var recyclerViewPreviousIncomes: RecyclerView
+    private lateinit var textViewPreviousIncome: TextView
+    private lateinit var recyclerViewPreviousIncome: RecyclerView
     private lateinit var incomeDao: IncomeDao
     private lateinit var previousIncomeAdapter: PreviousIncomeAdapter
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate() called")
         setContentView(R.layout.activity_income_entry)
 
         // Initialize UI elements
-        editTextDate = findViewById(R.id.editTextDate)
-        editTextValue = findViewById(R.id.editTextValue)
-        spinnerCurrency = findViewById(R.id.spinnerCurrency)
-        spinnerCategory = findViewById(R.id.spinnerCategory)
-        editTextComment = findViewById(R.id.editTextComment)
+        editTextIncomeDate = findViewById(R.id.editTextIncomeDate)
+        editTextIncomeValue = findViewById(R.id.editTextIncomeValue)
+        spinnerIncomeCurrency = findViewById(R.id.spinnerIncomeCurrency)
+        spinnerIncomeCategory = findViewById(R.id.spinnerIncomeCategory)
+        editTextIncomeComment = findViewById(R.id.editTextIncomeComment)
         buttonSaveIncome = findViewById(R.id.buttonSaveIncome)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
-        textViewPreviousIncomes = findViewById(R.id.textViewPreviousIncomes)
-        recyclerViewPreviousIncomes = findViewById(R.id.recyclerViewPreviousIncomes)
+        textViewPreviousIncome = findViewById(R.id.textViewPreviousIncome)
+        recyclerViewPreviousIncome = findViewById(R.id.recyclerViewPreviousIncome)
 
         // Initialize IncomeDao
         incomeDao = IncomeDao(this)
 
         // Set up Date Picker
-        editTextDate.setOnClickListener {
+        editTextIncomeDate.setOnClickListener {
             showDatePickerDialog()
         }
 
@@ -58,28 +64,38 @@ class IncomeEntryActivity : AppCompatActivity() {
             saveIncomeData()
         }
 
+        // Set up bottom navigation
         bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
-                R.id.navigation_home -> {
+                R.id.menu_home -> {
+                    Log.d(TAG, "Home navigation selected, returning to DashboardActivity")
                     startActivity(Intent(this, DashboardActivity::class.java))
-                    finish()
                     true
                 }
                 else -> false
             }
         }
-        bottomNavigationView.selectedItemId = R.id.navigation_home
-
+        
         // Set up RecyclerView for previous incomes
-        recyclerViewPreviousIncomes.layoutManager = LinearLayoutManager(this)
+        recyclerViewPreviousIncome.layoutManager = LinearLayoutManager(this)
         previousIncomeAdapter = PreviousIncomeAdapter(emptyList())
-        recyclerViewPreviousIncomes.adapter = previousIncomeAdapter
+        recyclerViewPreviousIncome.adapter = previousIncomeAdapter
 
         // Load initial previous incomes
         loadPreviousIncomes()
 
         // Initialize Date Field with Current Date
         updateDateEditText()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart() called")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume() called")
     }
 
     private fun showDatePickerDialog() {
@@ -101,20 +117,21 @@ class IncomeEntryActivity : AppCompatActivity() {
         )
         datePickerDialog.show()
     }
+
     private fun updateDateEditText() {
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = selectedDateInMillis
         val formattedDate = String.format(Locale.getDefault(), "%d-%02d-%02d",
             calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH)
         )
-        editTextDate.setText(formattedDate)
+        editTextIncomeDate.setText(formattedDate)
     }
 
     private fun saveIncomeData() {
-        val currency = spinnerCurrency.selectedItem.toString()
-        val category = spinnerCategory.selectedItem.toString()
-        val valueStr = editTextValue.text.toString()
-        val comment = editTextComment.text.toString()
+        val currency = spinnerIncomeCurrency.selectedItem.toString()
+        val category = spinnerIncomeCategory.selectedItem.toString()
+        val valueStr = editTextIncomeValue.text.toString()
+        val comment = editTextIncomeComment.text.toString()
 
         if (valueStr.isNotEmpty()) {
             val value = valueStr.toDouble()
@@ -123,8 +140,8 @@ class IncomeEntryActivity : AppCompatActivity() {
             if (insertedRowId > 0) {
                 Toast.makeText(this, "Income data saved successfully", Toast.LENGTH_SHORT).show()
                 // Clear input fields after saving
-                editTextValue.text.clear()
-                editTextComment.text.clear()
+                editTextIncomeValue.text.clear()
+                editTextIncomeComment.text.clear()
                 // Keep the selected date
                 loadPreviousIncomes() // Reload the list after saving
             } else {

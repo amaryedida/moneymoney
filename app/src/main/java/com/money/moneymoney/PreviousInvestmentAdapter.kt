@@ -9,15 +9,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class PreviousInvestmentAdapter(private var previousInvestments: List<Investment>) :
-    RecyclerView.Adapter<PreviousInvestmentAdapter.PreviousInvestmentViewHolder>() {
+class PreviousInvestmentAdapter(
+    private var previousInvestments: List<Investment>,
+    private val goalDao: GoalDao
+) : RecyclerView.Adapter<PreviousInvestmentAdapter.PreviousInvestmentViewHolder>() {
 
     class PreviousInvestmentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val dateTextView: TextView = itemView.findViewById(R.id.textViewPreviousInvestmentDate)
         val currencyTextView: TextView = itemView.findViewById(R.id.textViewPreviousInvestmentCurrency)
         val valueTextView: TextView = itemView.findViewById(R.id.textViewPreviousInvestmentValue)
         val categoryTextView: TextView = itemView.findViewById(R.id.textViewPreviousInvestmentCategory)
-        // You might want to display the goal as well, if it's not null
         val goalTextView: TextView = itemView.findViewById(R.id.textViewPreviousInvestmentGoal)
     }
 
@@ -34,12 +35,16 @@ class PreviousInvestmentAdapter(private var previousInvestments: List<Investment
         holder.currencyTextView.text = currentInvestment.currency
         holder.valueTextView.text = String.format(Locale.getDefault(), "%.2f", currentInvestment.value)
         holder.categoryTextView.text = currentInvestment.category
-        // Display the goal if it exists
+        
+        // Display the goal name if it exists
         if (currentInvestment.goalId != null) {
-            // You might need to fetch the actual goal name from the database if you only have the ID here
-            // For now, we'll just display the ID if it's not null
-            holder.goalTextView.visibility = View.VISIBLE
-            holder.goalTextView.text = "Goal ID: ${currentInvestment.goalId}"
+            val goal = goalDao.getGoalById(currentInvestment.goalId)
+            if (goal != null) {
+                holder.goalTextView.visibility = View.VISIBLE
+                holder.goalTextView.text = "Goal: ${goal.name}"
+            } else {
+                holder.goalTextView.visibility = View.GONE
+            }
         } else {
             holder.goalTextView.visibility = View.GONE
         }

@@ -1,7 +1,9 @@
 package com.money.moneymoney
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
@@ -10,10 +12,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
 
 class ExpenseEntryActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "ExpenseEntryActivity"
+    }
 
     private lateinit var editTextExpenseDate: EditText
     private lateinit var editTextExpenseValue: EditText
@@ -24,7 +31,8 @@ class ExpenseEntryActivity : AppCompatActivity() {
     private lateinit var textViewPreviousExpenses: TextView
     private lateinit var recyclerViewPreviousExpenses: RecyclerView
     private lateinit var expenseDao: ExpenseDao
-    private lateinit var previousExpensesAdapter: PreviousExpenseAdapter // Create this adapter
+    private lateinit var previousExpensesAdapter: PreviousExpenseAdapter
+    private lateinit var bottomNavigation: BottomNavigationView
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,8 +47,27 @@ class ExpenseEntryActivity : AppCompatActivity() {
         buttonSaveExpense = findViewById(R.id.buttonSaveExpense)
         textViewPreviousExpenses = findViewById(R.id.textViewPreviousExpenses)
         recyclerViewPreviousExpenses = findViewById(R.id.recyclerViewPreviousExpenses)
+        bottomNavigation = findViewById(R.id.bottomNavigationView)
 
         expenseDao = ExpenseDao(this)
+
+        // Set up bottom navigation
+        bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.menu_home -> {
+                    Log.d(TAG, "Home navigation selected, returning to DashboardActivity")
+                    val intent = Intent(this, DashboardActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    startActivity(intent)
+                    finish()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        // Set the current item to home
+        bottomNavigation.selectedItemId = R.id.menu_home
 
         editTextExpenseDate.setOnClickListener {
             showDatePickerDialog()
@@ -52,7 +79,7 @@ class ExpenseEntryActivity : AppCompatActivity() {
 
         // Set up RecyclerView for previous expenses
         recyclerViewPreviousExpenses.layoutManager = LinearLayoutManager(this)
-        previousExpensesAdapter = PreviousExpenseAdapter(emptyList()) // Initialize with an empty list
+        previousExpensesAdapter = PreviousExpenseAdapter(emptyList())
         recyclerViewPreviousExpenses.adapter = previousExpensesAdapter
 
         loadPreviousExpenses()
@@ -101,7 +128,7 @@ class ExpenseEntryActivity : AppCompatActivity() {
                 Toast.makeText(this, "Expense data saved successfully", Toast.LENGTH_SHORT).show()
                 editTextExpenseValue.text.clear()
                 editTextExpenseComment.text.clear()
-                loadPreviousExpenses() // Reload the list after saving
+                loadPreviousExpenses()
             } else {
                 Toast.makeText(this, "Failed to save expense data", Toast.LENGTH_SHORT).show()
             }

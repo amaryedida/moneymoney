@@ -7,116 +7,121 @@
     android:padding="16dp"
     tools:context=".InvestmentEntryActivity">
 
-    <ScrollView
-        android:id="@+id/scrollViewInvestmentEntry"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+    <TextView
+        android:id="@+id/textViewTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Investment"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/textViewPreviousInvestments">
+        app:layout_constraintStart_toStartOf="parent" />
 
-        <LinearLayout
+    <LinearLayout
+        android:id="@+id/linearLayoutInvestmentEntry"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/textViewTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date"
+            android:labelFor="@+id/editTextInvestmentDate" />
+
+        <EditText
+            android:id="@+id/editTextInvestmentDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:focusable="false"
+            android:clickable="true"
+            android:hint="Select Date"
+            android:inputType="date"
+            android:minHeight="48dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Date"
-                android:labelFor="@+id/editTextInvestmentDate" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Value"
+            android:labelFor="@+id/editTextInvestmentValue" />
 
-            <EditText
-                android:id="@+id/editTextInvestmentDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="false"
-                android:clickable="true"
-                android:hint="Select Date"
-                android:inputType="date"
-                android:minHeight="48dp" />
+        <EditText
+            android:id="@+id/editTextInvestmentValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Amount"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Value"
-                android:labelFor="@+id/editTextInvestmentValue" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Currency"
+            android:labelFor="@+id/spinnerInvestmentCurrency" />
 
-            <EditText
-                android:id="@+id/editTextInvestmentValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter Amount"
-                android:inputType="numberDecimal"
-                android:minHeight="48dp" />
+        <Spinner
+            android:id="@+id/spinnerInvestmentCurrency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/currencies"
+            android:minHeight="48dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Currency"
-                android:labelFor="@+id/spinnerInvestmentCurrency" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Investment Category"
+            android:labelFor="@+id/spinnerInvestmentCategory" />
 
-            <Spinner
-                android:id="@+id/spinnerInvestmentCurrency"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:entries="@array/currencies"
-                android:minHeight="48dp" />
+        <Spinner
+            android:id="@+id/spinnerInvestmentCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/investment_categories"
+            android:minHeight="48dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Investment Category"
-                android:labelFor="@+id/spinnerInvestmentCategory" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Associated Goal (Optional)"
+            android:labelFor="@+id/spinnerInvestmentGoal" />
 
-            <Spinner
-                android:id="@+id/spinnerInvestmentCategory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:entries="@array/investment_categories"
-                android:minHeight="48dp" />
+        <Spinner
+            android:id="@+id/spinnerInvestmentGoal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Associated Goal (Optional)"
-                android:labelFor="@+id/spinnerInvestmentGoal" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Comments (Optional)"
+            android:labelFor="@+id/editTextInvestmentComment" />
 
-            <Spinner
-                android:id="@+id/spinnerInvestmentGoal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="48dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Comments (Optional)"
-                android:labelFor="@+id/editTextInvestmentComment" />
+        <EditText
+            android:id="@+id/editTextInvestmentComment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter comments here"
+            android:inputType="textMultiLine"
+            android:minHeight="48dp" />
 
-            <EditText
-                android:id="@+id/editTextInvestmentComment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter comments here"
-                android:inputType="textMultiLine"
-                android:minHeight="48dp" />
+        <Button
+            android:id="@+id/buttonSaveInvestment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center_horizontal"
+            android:text="Save Investment" />
 
-            <Button
-                android:id="@+id/buttonSaveInvestment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Save Investment" />
-
-        </LinearLayout>
-
-    </ScrollView>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textViewPreviousInvestments"
@@ -125,7 +130,7 @@
         android:layout_marginTop="16dp"
         android:text="Previous Investments:"
         android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-        app:layout_constraintTop_toBottomOf="@+id/scrollViewInvestmentEntry"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayoutInvestmentEntry"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -134,7 +139,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        android:nestedScrollingEnabled="false"
+        android:nestedScrollingEnabled="true"
         app:layout_constraintTop_toBottomOf="@+id/textViewPreviousInvestments"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

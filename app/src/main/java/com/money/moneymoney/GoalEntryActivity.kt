@@ -1,7 +1,9 @@
 package com.money.moneymoney
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -11,10 +13,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
 
 class GoalEntryActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "GoalEntryActivity"
+    }
 
     private lateinit var btnAddGoal: Button
     private lateinit var recyclerViewGoals: RecyclerView
@@ -26,10 +33,12 @@ class GoalEntryActivity : AppCompatActivity() {
     private lateinit var spinnerGoalCurrency: Spinner
     private lateinit var buttonSaveGoal: Button
     private lateinit var goalDao: GoalDao
+    private lateinit var bottomNavigationView: BottomNavigationView
     private var selectedCreationDateInMillis: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate() called")
         setContentView(R.layout.activity_goal_entry)
 
         btnAddGoal = findViewById(R.id.btnAddGoal)
@@ -40,13 +49,14 @@ class GoalEntryActivity : AppCompatActivity() {
         editTextGoalCreationDate = findViewById(R.id.editTextGoalCreationDate)
         spinnerGoalCurrency = findViewById(R.id.spinnerGoalCurrency)
         buttonSaveGoal = findViewById(R.id.buttonSaveGoal)
+        bottomNavigationView = findViewById(R.id.bottomNavigationView)
 
         goalDao = GoalDao(this)
         goalAdapter = GoalAdapter(mutableListOf())
         recyclerViewGoals.layoutManager = LinearLayoutManager(this)
         recyclerViewGoals.adapter = goalAdapter
 
-        loadActiveGoals() // Load goals on activity creation
+        loadActiveGoals()
 
         btnAddGoal.setOnClickListener {
             layoutAddGoalForm.visibility = View.VISIBLE
@@ -60,18 +70,35 @@ class GoalEntryActivity : AppCompatActivity() {
             saveNewGoal()
         }
 
+        // Set up bottom navigation
+        bottomNavigationView.setOnItemSelectedListener {
+            when (it.itemId) {
+                R.id.menu_home -> {
+                    Log.d(TAG, "Home navigation selected, returning to DashboardActivity")
+                    val intent = Intent(this, DashboardActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    startActivity(intent)
+                    finish()
+                    true
+                }
+                else -> false
+            }
+        }
+        // Set the current item to home
+        bottomNavigationView.selectedItemId = R.id.menu_home
+
         updateCreationDateEditText()
     }
 
     override fun onResume() {
         super.onResume()
-        loadActiveGoals() // Reload goals when the activity resumes
+        loadActiveGoals()
     }
 
     private fun loadActiveGoals() {
         val activeGoals = goalDao.getAllActiveGoals()
         goalAdapter.updateGoals(activeGoals)
-        layoutAddGoalForm.visibility = View.GONE // Hide form when loading list
+        layoutAddGoalForm.visibility = View.GONE
     }
 
     private fun showDatePickerDialog() {
@@ -106,6 +133,7 @@ class GoalEntryActivity : AppCompatActivity() {
             editTextGoalCreationDate.setText("")
         }
     }
+
     private fun saveNewGoal() {
         val name = editTextGoalName.text.toString().trim()
         val targetValueStr = editTextTargetAmount.text.toString().trim()
@@ -122,7 +150,7 @@ class GoalEntryActivity : AppCompatActivity() {
                 editTextTargetAmount.text.clear()
                 selectedCreationDateInMillis = null
                 updateCreationDateEditText()
-                loadActiveGoals() // Reload the list
+                loadActiveGoals()
             } else {
                 Toast.makeText(this, "Failed to save goal", Toast.LENGTH_SHORT).show()
             }

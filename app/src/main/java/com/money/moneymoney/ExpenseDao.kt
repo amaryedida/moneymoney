@@ -3,6 +3,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import com.money.moneymoney.DatabaseHelper.Companion.COLUMN_EXPENSE_CATEGORY
 import com.money.moneymoney.DatabaseHelper.Companion.COLUMN_EXPENSE_COMMENT
 import com.money.moneymoney.DatabaseHelper.Companion.COLUMN_EXPENSE_CURRENCY
@@ -16,8 +17,10 @@ class ExpenseDao(context: Context) {
 
     private val dbHelper = DatabaseHelper(context)
     private val database: SQLiteDatabase = dbHelper.writableDatabase
+    private val TAG = "ExpenseDao"
 
     fun addExpense(currency: String, category: String, value: Double, comment: String?, date: Long): Long {
+        Log.d(TAG, "Adding expense: $currency, $category, $value, $comment, $date")
         val values = ContentValues().apply {
             put(COLUMN_EXPENSE_CURRENCY, currency)
             put(COLUMN_EXPENSE_CATEGORY, category)
@@ -25,11 +28,13 @@ class ExpenseDao(context: Context) {
             put(COLUMN_EXPENSE_COMMENT, comment)
             put(COLUMN_EXPENSE_DATE, date)
         }
-        return database.insert(TABLE_EXPENSES, null, values)
+        val id = database.insert(TABLE_EXPENSES, null, values)
+        Log.d(TAG, "Added expense with ID: $id")
+        return id
     }
 
     fun getExpensesForMonth(year: Int, month: Int): List<Expense> {
-        // ... (your existing getExpensesForMonth method) ...
+        Log.d(TAG, "Getting expenses for year: $year, month: $month")
         val expenseList = mutableListOf<Expense>()
         val calendar = Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
@@ -63,6 +68,7 @@ class ExpenseDao(context: Context) {
             null
         )
 
+        Log.d(TAG, "Found ${cursor.count} expenses")
         cursor.use {
             while (it.moveToNext()) {
                 val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_ID))
@@ -80,6 +86,7 @@ class ExpenseDao(context: Context) {
 
     // * New method to get the last 10 expenses *
     fun getLastTenExpenses(): List<Expense> {
+        Log.d(TAG, "Getting last 10 expenses")
         val expenses = mutableListOf<Expense>()
         val cursor: Cursor = database.query(
             TABLE_EXPENSES,
@@ -98,6 +105,7 @@ class ExpenseDao(context: Context) {
             "10" // Limit the result to 10 rows
         )
 
+        Log.d(TAG, "Found ${cursor.count} expenses")
         cursor.use {
             while (it.moveToNext()) {
                 val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_ID))

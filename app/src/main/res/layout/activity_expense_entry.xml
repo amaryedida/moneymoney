@@ -4,17 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
     tools:context=".ExpenseEntryActivity">
 
     <ScrollView
-        android:id="@+id/scrollViewExpenseEntry"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:padding="16dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/textViewPreviousExpenses">
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -22,110 +19,120 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/textViewTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Date"
-                android:labelFor="@+id/editTextExpenseDate" />
+                android:text="Add Expense"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
-            <EditText
-                android:id="@+id/editTextExpenseDate"
+            <LinearLayout
+                android:id="@+id/linearLayoutExpenseEntry"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="false"
-                android:clickable="true"
-                android:hint="Select Date"
-                android:inputType="date"
-                android:minHeight="48dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Value"
-                android:labelFor="@+id/editTextExpenseValue" />
+                android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/editTextExpenseValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter Amount"
-                android:inputType="numberDecimal"
-                android:minHeight="48dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Date"
+                    android:labelFor="@+id/editTextExpenseDate" />
+
+                <EditText
+                    android:id="@+id/editTextExpenseDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:hint="Select Date"
+                    android:inputType="date"
+                    android:minHeight="48dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Value"
+                    android:labelFor="@+id/editTextExpenseValue" />
+
+                <EditText
+                    android:id="@+id/editTextExpenseValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Amount"
+                    android:inputType="numberDecimal"
+                    android:minHeight="48dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Currency"
+                    android:labelFor="@+id/spinnerExpenseCurrency" />
+
+                <Spinner
+                    android:id="@+id/spinnerExpenseCurrency"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/currencies"
+                    android:minHeight="48dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Expense Category"
+                    android:labelFor="@+id/spinnerExpenseCategory" />
+
+                <Spinner
+                    android:id="@+id/spinnerExpenseCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/expense_categories"
+                    android:minHeight="48dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Comments (Optional)"
+                    android:labelFor="@+id/editTextExpenseComment" />
+
+                <EditText
+                    android:id="@+id/editTextExpenseComment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter comments here"
+                    android:inputType="textMultiLine"
+                    android:minHeight="48dp" />
+                    
+                <Button
+                    android:id="@+id/buttonSaveExpense"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:layout_gravity="center_horizontal"
+                    android:text="Save Expense" />
+
+            </LinearLayout>
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Currency"
-                android:labelFor="@+id/spinnerExpenseCurrency" />
-
-            <Spinner
-                android:id="@+id/spinnerExpenseCurrency"
+                android:id="@+id/textViewPreviousExpenses"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:entries="@array/currencies"
-                android:minHeight="48dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Expense Category"
-                android:labelFor="@+id/spinnerExpenseCategory" />
+                android:text="Previous Expenses:"
+                android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
 
-            <Spinner
-                android:id="@+id/spinnerExpenseCategory"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewPreviousExpenses"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:entries="@array/expense_categories"
-                android:minHeight="48dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Comments (Optional)"
-                android:labelFor="@+id/editTextExpenseComment" />
-
-            <EditText
-                android:id="@+id/editTextExpenseComment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter comments here"
-                android:inputType="textMultiLine"
-                android:minHeight="48dp" />
-            <Button
-                android:id="@+id/buttonSaveExpense"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Save Expense" />
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="true" />
 
         </LinearLayout>
-
     </ScrollView>
-
-    <TextView
-        android:id="@+id/textViewPreviousExpenses"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Previous Expenses:"
-        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-        app:layout_constraintTop_toBottomOf="@+id/scrollViewExpenseEntry"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewPreviousExpenses"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:nestedScrollingEnabled="false"
-        app:layout_constraintTop_toBottomOf="@+id/textViewPreviousExpenses"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
