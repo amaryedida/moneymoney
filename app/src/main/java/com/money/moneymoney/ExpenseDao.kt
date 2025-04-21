@@ -15,7 +15,7 @@ import java.util.Calendar
 
 class ExpenseDao(context: Context) {
 
-    private val dbHelper = DatabaseHelper(context)
+    private val dbHelper = DatabaseHelper(context.applicationContext)
     private val database: SQLiteDatabase = dbHelper.writableDatabase
     private val TAG = "ExpenseDao"
 

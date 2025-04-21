@@ -15,7 +15,7 @@ import com.money.moneymoney.DatabaseHelper.Companion.TABLE_GOALS
 
 class GoalDao(context: Context) {
 
-    private val dbHelper = DatabaseHelper(context)
+    private val dbHelper = DatabaseHelper(context = context)
     private val database: SQLiteDatabase = dbHelper.writableDatabase
 
     companion object {

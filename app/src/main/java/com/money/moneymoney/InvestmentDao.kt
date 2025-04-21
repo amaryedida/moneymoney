@@ -16,7 +16,7 @@ import java.util.Calendar
 
 class InvestmentDao(context: Context) {
 
-    private val dbHelper = DatabaseHelper(context)
+    private val dbHelper = DatabaseHelper(context = context)
     private val database: SQLiteDatabase = dbHelper.writableDatabase
 
     fun addInvestment(

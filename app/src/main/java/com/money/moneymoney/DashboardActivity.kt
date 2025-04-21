@@ -214,7 +214,7 @@ class DashboardActivity : AppCompatActivity() {
         for (goal in activeGoals) {
             val investmentsForGoal = investmentDao.getInvestmentsByGoalId(goal.id)
             val amountInvested = investmentsForGoal.sumOf { it.value  }
-            val percentageProgress = if (goal.targetValue > 0) (amountInvested / goal.targetValue * 100).toInt() else 0
+            val percentageProgress = if (goal.targetValue > 0) (amountInvested / goal.targetValue.toDouble() * 100).toInt() else 0
             val remainingAmount = goal.targetValue - amountInvested
 
             goalProgressList.add(GoalWithProgress(goal = goal, amountInvested = amountInvested, percentageProgress = percentageProgress, remainingAmount = remainingAmount))

@@ -14,7 +14,7 @@ import java.util.Calendar
 import android.util.Log
 
 class IncomeDao(context: Context) {
-    private val dbHelper = DatabaseHelper(context)
+    private val dbHelper = DatabaseHelper(context = context)
     private val database: SQLiteDatabase = dbHelper.writableDatabase
     private val TAG = "IncomeDao"
 
