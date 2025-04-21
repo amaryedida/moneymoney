@@ -99,22 +99,3 @@ class CurrencySelectionActivity : AppCompatActivity() {
         Toast.makeText(this, "Please select a currency first.", Toast.LENGTH_SHORT).show()
     }
 }
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    private fun navigateToExpenseReportList(currency: String) {
-        val intent = Intent(this, ExpenseReportListActivity::class.java)  // Assuming ExpenseReportListActivity will be created
-        intent.putExtra(EXTRA_CURRENCY, currency)
-        startActivity(intent)
-    }
-
-    private fun navigateToDashboard() {
-        val intent = Intent(this, DashboardActivity::class.java)
-        startActivity(intent)
-        finish() // Close this activity after navigating to dashboard
-    }
-}

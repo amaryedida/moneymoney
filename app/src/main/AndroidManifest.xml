@@ -41,6 +41,25 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".DashboardActivity" />
         </activity>
+        
+        <activity
+            android:name=".IncomeListActivity"
+            android:exported="false"
+            android:label="Income List"
+            android:parentActivityName=".DashboardActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+
+        <activity
+            android:name=".InvestmentListActivity"
+            android:exported="false"
+            android:label="Investment List"
+            android:parentActivityName=".DashboardActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity"/>
+        </activity>
 
 
         <activity
@@ -66,17 +85,6 @@
         </activity>
 
         <activity
-            android:name=".CurrencyReportsActivity"
-            android:exported="false"
-            android:label="Reports"
-            android:parentActivityName=".DashboardActivity"
-            android:theme="@style/Theme.MoneyMoney">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".DashboardActivity" />
-        </activity>
-
-        <activity
             android:name=".IncomeEntryActivity"
             android:exported="false"
             android:label="Add Income"
@@ -93,6 +101,16 @@
             android:label="Add Investment"
             android:parentActivityName=".DashboardActivity"
             android:theme="@style/Theme.MoneyMoney">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+
+        <activity
+            android:name=".GoalListActivity"
+            android:exported="false"
+            android:label="Goal List"
+            android:parentActivityName=".DashboardActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".DashboardActivity" />

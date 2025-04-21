@@ -82,6 +82,27 @@ class GoalDao(context: Context) {
         return goals
     }
 
+    fun updateGoal(goal: Goal): Int {
+        val values = ContentValues().apply {
+            put(COLUMN_GOAL_NAME, goal.name)
+            put(COLUMN_GOAL_TARGET_VALUE, goal.targetValue)
+            put(COLUMN_GOAL_CURRENCY, goal.currency)
+            put(COLUMN_GOAL_CREATION_DATE, goal.creationDate)
+            put(COLUMN_GOAL_STATUS, goal.status)
+            put(COLUMN_GOAL_COMPLETION_DATE, goal.completionDate)
+        }
+        return database.update(TABLE_GOALS, values, "$COLUMN_GOAL_ID = ?", arrayOf(goal.id.toString()))
+    }
+
+    fun deleteGoal(goal: Goal): Int {
+        return database.delete(TABLE_GOALS, "$COLUMN_GOAL_ID = ?", arrayOf(goal.id.toString()))
+    }
+
+
+
+
+
+
     fun getGoalById(goalId: Long): Goal? {
         val cursor: Cursor = database.query(
             TABLE_GOALS,

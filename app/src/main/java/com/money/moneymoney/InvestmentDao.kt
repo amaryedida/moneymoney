@@ -49,7 +49,7 @@ class InvestmentDao(context: Context) {
                 COLUMN_INVESTMENT_VALUE,
                 COLUMN_INVESTMENT_COMMENT,
                 COLUMN_INVESTMENT_DATE,
-                COLUMN_INVESTMENT_GOAL_ID
+                COLUMN_INVESTMENT_GOAL_ID,
             ),
             null,
             null,
@@ -166,11 +166,96 @@ class InvestmentDao(context: Context) {
         return investmentList
     }
 
+    // Method to get investments filtered by currency (for initial display)
+    fun getInvestmentsByCurrency(currency: String): List<Investment> {
+        val investmentList = mutableListOf<Investment>()
+        val query = """
+            SELECT investments.*, goals.name AS goal_name
+            FROM $TABLE_INVESTMENTS AS investments
+            LEFT JOIN $TABLE_GOALS AS goals ON investments.$COLUMN_INVESTMENT_GOAL_ID = goals.$COLUMN_GOAL_ID
+            WHERE investments.$COLUMN_INVESTMENT_CURRENCY = ?
+            ORDER BY investments.$COLUMN_INVESTMENT_DATE DESC
+        """
+        val cursor = database.rawQuery(query, arrayOf(currency))
+
+        cursor.use {
+            while (it.moveToNext()) {
+                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_ID))
+                val investmentCurrency = it.getString(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_CURRENCY))
+                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_CATEGORY))
+                COLUMN_INVESTMENT_VALUE,
+                COLUMN_INVESTMENT_COMMENT,
+                COLUMN_INVESTMENT_DATE,
+                COLUMN_INVESTMENT_GOAL_ID,
+            ),
+            "${COLUMN_INVESTMENT_CURRENCY} = ?",  // WHERE clause: filter by currency
+            arrayOf(currency),                  // Argument for the WHERE clause
+            null,
+            null,
+            "${COLUMN_INVESTMENT_DATE} DESC"       // Order by date descending
+        )
+
+        cursor.use {
+            while (it.moveToNext()) {
+                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_ID))
+                val investmentCurrency = it.getString(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_CURRENCY))
+                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_CATEGORY))
+                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_VALUE))
+                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_COMMENT))
+                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_DATE))
+                val goalIdIndex = it.getColumnIndexOrThrow(COLUMN_INVESTMENT_GOAL_ID)
+                val goalId = if (it.isNull(goalIdIndex)) null else it.getLong(goalIdIndex)
+                val goalName = it.getString(it.getColumnIndexOrThrow("goal_name"))
+                val investment = Investment(id, investmentCurrency, category, value, comment, date, goalId, goalName)
+                investmentList.add(investment)
+            }
+        }
+        return investmentList
+    }
+
+    // Method to get investments filtered by currency and optional date range
+    fun getInvestmentsByCurrencyAndDateRange(currency: String, startDate: Long? = null, endDate: Long? = null): List<Investment> {
+        val investmentList = mutableListOf<Investment>()
+        val query = StringBuilder("""
+            SELECT investments.*, goals.name AS goal_name
+            FROM $TABLE_INVESTMENTS AS investments
+            LEFT JOIN $TABLE_GOALS AS goals ON investments.$COLUMN_INVESTMENT_GOAL_ID = goals.$COLUMN_GOAL_ID
+            WHERE investments.$COLUMN_INVESTMENT_CURRENCY = ?
+        """)
+        val selectionArgs = mutableListOf(currency)
+
+        if (startDate != null && endDate != null) {
+            query.append(" AND investments.$COLUMN_INVESTMENT_DATE BETWEEN ? AND ?")
+            selectionArgs.add(startDate.toString())
+            selectionArgs.add(endDate.toString())
+        }
+
+        query.append(" ORDER BY investments.$COLUMN_INVESTMENT_DATE DESC")
+
+        val cursor = database.rawQuery(query.toString(), selectionArgs.toTypedArray())
+
+        cursor.use {
+            while (it.moveToNext()) {
+                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_ID))
+                val investmentCurrency = it.getString(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_CURRENCY))
+                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_CATEGORY))
+                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_VALUE))
+                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_COMMENT))
+                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_INVESTMENT_DATE))
+                val goalIdIndex = it.getColumnIndexOrThrow(COLUMN_INVESTMENT_GOAL_ID)
+                val goalId = if (it.isNull(goalIdIndex)) null else it.getLong(goalIdIndex)
+                val goalName = it.getString(it.getColumnIndexOrThrow("goal_name"))
+                val investment = Investment(id, investmentCurrency, category, value, comment, date, goalId, goalName)
+                investmentList.add(investment)
+            }
+        }
+        return investmentList
+    }
+
     fun close() {
         dbHelper.close()
     }
 }
-
 data class Investment(
     val id: Long,
     val currency: String,
