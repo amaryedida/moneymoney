@@ -26,6 +26,24 @@
         </activity>
 
         <activity
+            android:name=".CurrencySelectionActivity"
+            android:exported="false"
+            android:label="Select Currency"
+            android:parentActivityName=".DashboardActivity">
+        </activity>
+
+        <activity
+            android:name=".ExpenseListActivity"
+            android:exported="false"
+            android:label="Expense List"
+            android:parentActivityName=".DashboardActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+
+
+        <activity
             android:name=".ExpenseEntryActivity"
             android:exported="false"
             android:label="Add Expense"

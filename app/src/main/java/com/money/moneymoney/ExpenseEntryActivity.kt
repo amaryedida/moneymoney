@@ -10,7 +10,6 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
@@ -20,6 +19,7 @@ class ExpenseEntryActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "ExpenseEntryActivity"
+        const val EXTRA_EXPENSE = "com.money.moneymoney.EXTRA_EXPENSE"
     }
 
     private lateinit var editTextExpenseDate: EditText
@@ -35,6 +35,7 @@ class ExpenseEntryActivity : AppCompatActivity() {
     private lateinit var bottomNavigation: BottomNavigationView
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
 
+    private var expenseId: Long? = null // To store the ID if editing an expense
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_expense_entry)
@@ -48,6 +49,25 @@ class ExpenseEntryActivity : AppCompatActivity() {
         textViewPreviousExpenses = findViewById(R.id.textViewPreviousExpenses)
         recyclerViewPreviousExpenses = findViewById(R.id.recyclerViewPreviousExpenses)
         bottomNavigation = findViewById(R.id.bottomNavigationView)
+
+        // Check if we are editing an existing expense
+        val expenseToEdit = intent.getParcelableExtra<Expense>(EXTRA_EXPENSE)
+        if (expenseToEdit != null) {
+            expenseId = expenseToEdit.id
+            supportActionBar?.title = "Edit Expense"  // Change activity title
+
+            // Pre-populate UI fields with expense data
+            editTextExpenseDate.setText(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(expenseToEdit.date)))
+            editTextExpenseValue.setText(String.format(Locale.getDefault(), "%.2f", expenseToEdit.value))
+
+            // Find the position of the category and currency in the spinners
+            val categoryPosition = (spinnerExpenseCategory.adapter as? ArrayAdapter<String>)?.getPosition(expenseToEdit.category) ?: 0
+            val currencyPosition = (spinnerExpenseCurrency.adapter as? ArrayAdapter<String>)?.getPosition(expenseToEdit.currency) ?: 0
+
+            spinnerExpenseCategory.setSelection(categoryPosition)
+            spinnerExpenseCurrency.setSelection(currencyPosition)
+            editTextExpenseComment.setText(expenseToEdit.comment)
+        }
 
         expenseDao = ExpenseDao(this)
 

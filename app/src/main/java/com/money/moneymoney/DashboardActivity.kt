@@ -92,7 +92,6 @@ class DashboardActivity : AppCompatActivity() {
             try {
                 val intent = Intent(this, IncomeEntryActivity::class.java)
                 Log.d(TAG, "Starting IncomeEntryActivity")
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
             } catch (e: Exception) {
                 Log.e(TAG, "Error starting IncomeEntryActivity", e)
@@ -107,10 +106,7 @@ class DashboardActivity : AppCompatActivity() {
         buttonAddExpense.setOnClickListener {
             Log.d(TAG, "Add Expense button clicked")
             try {
-                val componentName = ComponentName(this, ExpenseEntryActivity::class.java)
-                val intent = Intent()
-                intent.component = componentName
-                Log.d(TAG, "Starting ExpenseEntryActivity with component: ${componentName.className}")
+                val intent = Intent(this, ExpenseEntryActivity::class.java)
                 startActivity(intent)
                 Log.d(TAG, "Successfully started ExpenseEntryActivity")
             } catch (e: Exception) {
@@ -124,7 +120,6 @@ class DashboardActivity : AppCompatActivity() {
             try {
                 val intent = Intent(this, InvestmentEntryActivity::class.java)
                 Log.d(TAG, "Starting InvestmentEntryActivity")
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
             } catch (e: Exception) {
                 Log.e(TAG, "Error starting InvestmentEntryActivity", e)
@@ -139,10 +134,7 @@ class DashboardActivity : AppCompatActivity() {
         buttonAddGoal.setOnClickListener {
             Log.d(TAG, "Add Goal button clicked")
             try {
-                val componentName = ComponentName(this, GoalEntryActivity::class.java)
-                val intent = Intent()
-                intent.component = componentName
-                Log.d(TAG, "Starting GoalEntryActivity with component: ${componentName.className}")
+                val intent = Intent(this, GoalEntryActivity::class.java)
                 startActivity(intent)
                 Log.d(TAG, "Successfully started GoalEntryActivity")
             } catch (e: Exception) {
@@ -154,14 +146,11 @@ class DashboardActivity : AppCompatActivity() {
         buttonViewReports.setOnClickListener {
             Log.d(TAG, "View Reports button clicked")
             try {
-                val componentName = ComponentName(this, CurrencyReportsActivity::class.java)
-                val intent = Intent()
-                intent.component = componentName
-                Log.d(TAG, "Starting CurrencyReportsActivity with component: ${componentName.className}")
+                val intent = Intent(this, CurrencySelectionActivity::class.java)
                 startActivity(intent)
-                Log.d(TAG, "Successfully started CurrencyReportsActivity")
+                Log.d(TAG, "Successfully started CurrencySelectionActivity")
             } catch (e: Exception) {
-                Log.e(TAG, "Error starting CurrencyReportsActivity", e)
+                Log.e(TAG, "Error starting CurrencySelectionActivity", e)
                 Log.e(TAG, "Stack trace: ${e.stackTraceToString()}")
                 Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }

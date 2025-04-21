@@ -83,6 +83,97 @@ class ExpenseDao(context: Context) {
         }
         return expenseList
     }
+    / Method to get expenses filtered by currency (for initial display)
+    fun getExpensesByCurrency(currency: String): List<Expense> {
+        Log.d(TAG, "Getting expenses for currency: $currency")
+        val expenseList = mutableListOf<Expense>()
+        val cursor = database.query(
+            TABLE_EXPENSES,
+            arrayOf(
+                COLUMN_EXPENSE_ID,
+                COLUMN_EXPENSE_CURRENCY,
+                COLUMN_EXPENSE_CATEGORY,
+                COLUMN_EXPENSE_VALUE,
+                COLUMN_EXPENSE_COMMENT,
+                COLUMN_EXPENSE_DATE
+            ),
+            "${COLUMN_EXPENSE_CURRENCY} = ?",  // WHERE clause: filter by currency
+            arrayOf(currency),                  // Argument for the WHERE clause
+            null,
+            null,
+            "${COLUMN_EXPENSE_DATE} DESC"       // Order by date descending
+        )
+
+        Log.d(TAG, "Found ${cursor.count} expenses")
+        cursor.use {
+            while (it.moveToNext()) {
+                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_ID))
+                val expenseCurrency = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CURRENCY))
+                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CATEGORY))
+                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_EXPENSE_VALUE))
+                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_COMMENT))
+                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_DATE))
+                val expense = Expense(id, expenseCurrency, category, value, comment, date)
+                expenseList.add(expense)
+            }
+        }
+        return expenseList
+    }
+
+    // Method to get expenses filtered by currency and optional date range
+    fun getExpensesByCurrencyAndDateRange(currency: String, startDate: Long? = null, endDate: Long? = null): List<Expense> {
+        Log.d(TAG, "Getting expenses for currency: $currency, startDate: $startDate, endDate: $endDate")
+        val expenseList = mutableListOf<Expense>()
+        val selection = StringBuilder("${COLUMN_EXPENSE_CURRENCY} = ?")
+        val selectionArgs = mutableListOf(currency)
+
+        if (startDate != null && endDate != null) {
+            selection.append(" AND ${COLUMN_EXPENSE_DATE} >= ? AND ${COLUMN_EXPENSE_DATE} <= ?")
+            selectionArgs.add(startDate.toString())
+            selectionArgs.add(endDate.toString())
+        } else if (startDate != null) {
+            selection.append(" AND ${COLUMN_EXPENSE_DATE} >= ?")
+            selectionArgs.add(startDate.toString())
+        } else if (endDate != null) {
+            selection.append(" AND ${COLUMN_EXPENSE_DATE} <= ?")
+            selectionArgs.add(endDate.toString())
+        }
+
+        val cursor = database.query(
+            TABLE_EXPENSES,
+            arrayOf(
+                COLUMN_EXPENSE_ID,
+                COLUMN_EXPENSE_CURRENCY,
+                COLUMN_EXPENSE_CATEGORY,
+                COLUMN_EXPENSE_VALUE,
+                COLUMN_EXPENSE_COMMENT,
+                COLUMN_EXPENSE_DATE
+            ),
+            selection.toString(),
+            selectionArgs.toTypedArray(),
+            null,
+            null,
+            "${COLUMN_EXPENSE_DATE} DESC" // Order by date descending
+        )
+
+        Log.d(TAG, "Found ${cursor.count} expenses")
+        cursor.use {
+            while (it.moveToNext()) {
+                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_ID))
+                val expenseCurrency = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CURRENCY))
+                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CATEGORY))
+                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_EXPENSE_VALUE))
+                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_COMMENT))
+                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_DATE))
+                val expense = Expense(id, expenseCurrency, category, value, comment, date)
+                expenseList.add(expense)
+            }
+        }
+        return expenseList
+    }
+
+    // ... other methods (close) ...
+}
 
     // * New method to get the last 10 expenses *
     fun getLastTenExpenses(): List<Expense> {
@@ -120,6 +211,37 @@ class ExpenseDao(context: Context) {
         }
         return expenses
     }
+
+    fun updateExpense(expense: Expense) {
+        Log.d(TAG, "Updating expense: ${expense.id}")
+        val values = ContentValues().apply {
+            put(COLUMN_EXPENSE_CURRENCY, expense.currency)
+            put(COLUMN_EXPENSE_CATEGORY, expense.category)
+            put(COLUMN_EXPENSE_VALUE, expense.value)
+            put(COLUMN_EXPENSE_COMMENT, expense.comment)
+            put(COLUMN_EXPENSE_DATE, expense.date)
+        }
+        val rowsAffected = database.update(
+            TABLE_EXPENSES,
+            values,
+            "${COLUMN_EXPENSE_ID} = ?",
+            arrayOf(expense.id.toString())
+        )
+        Log.d(TAG, "Updated expense with ID: ${expense.id}, rows affected: $rowsAffected")
+    }
+
+    fun deleteExpense(expense: Expense) {
+        Log.d(TAG, "Deleting expense: ${expense.id}")
+        val rowsAffected = database.delete(
+            TABLE_EXPENSES,
+            "${COLUMN_EXPENSE_ID} = ?",
+            arrayOf(expense.id.toString())
+        )
+        Log.d(TAG, "Deleted expense with ID: ${expense.id}, rows affected: $rowsAffected")
+    }
+
+
+
 
     fun close() {
         dbHelper.close()
