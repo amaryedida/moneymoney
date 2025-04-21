@@ -83,7 +83,7 @@ class ExpenseDao(context: Context) {
         }
         return expenseList
     }
-    / Method to get expenses filtered by currency (for initial display)
+    // Method to get expenses filtered by currency (for initial display)
     fun getExpensesByCurrency(currency: String): List<Expense> {
         Log.d(TAG, "Getting expenses for currency: $currency")
         val expenseList = mutableListOf<Expense>()
@@ -232,20 +232,15 @@ class ExpenseDao(context: Context) {
 
     fun deleteExpense(expense: Expense) {
         Log.d(TAG, "Deleting expense: ${expense.id}")
-        val rowsAffected = database.delete(
-            TABLE_EXPENSES,
-            "${COLUMN_EXPENSE_ID} = ?",
-            arrayOf(expense.id.toString())
-        )
+        val rowsAffected = database.delete(TABLE_EXPENSES, "${COLUMN_EXPENSE_ID} = ?", arrayOf(expense.id.toString()))
         Log.d(TAG, "Deleted expense with ID: ${expense.id}, rows affected: $rowsAffected")
     }
 
 
 
-
-    fun close() {
-        dbHelper.close()
-    }
+        fun close() {
+            dbHelper.close()
+        }
 }
 
 data class Expense(
