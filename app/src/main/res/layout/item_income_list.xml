@@ -52,7 +52,7 @@
         android:layout_gravity="center_vertical"
         android:layout_marginStart="8dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/edit_expense"
+        android:contentDescription="@string/edit_income"
         android:padding="8dp"
         android:src="@android:drawable/ic_menu_edit" />
 
@@ -63,7 +63,7 @@
         android:layout_gravity="center_vertical"
         android:layout_marginStart="8dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/delete_expense"
+        android:contentDescription="@string/delete_income"
         android:padding="8dp"
         android:src="@android:drawable/ic_menu_delete" />
 

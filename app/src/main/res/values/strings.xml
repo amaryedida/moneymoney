@@ -2,6 +2,13 @@
 <resources>
 <string name="app_name">Money Money</string>
 
+    <string name="delete_expense">Delete Expense</string>
+    <string name="delete_income">Delete Income</string>
+    <string name="edit_income">Edit Income</string>
+    <string name="edit_expense">Edit Expense</string>
+    <string name="delete_investment">Delete Investment</string>
+    <string name="edit_investment">Edit Investment</string>
+
 <array name="currencies">
     <item>AED</item>
     <item>INR</item>
