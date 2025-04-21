@@ -17,6 +17,9 @@ import java.util.Date
 import java.util.Locale
 
 class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItemActionListener {
+    companion object {
+        private const val TAG = "InvestmentListActivity"
+    }
 
     private lateinit var recyclerViewInvestments: RecyclerView
     private lateinit var investmentAdapter: InvestmentListAdapter
@@ -31,29 +34,44 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_investment_list) // TODO: Create activity_investment_list.xml
+        setContentView(R.layout.activity_investment_list)
 
-        recyclerViewInvestments = findViewById(R.id.recycler_view_investments) // TODO: Ensure this ID exists in the layout
+        initializeViews()
+        setupCurrency()
+        setupInvestmentList()
+        setupListeners()
+        setupBottomNavigation()
+    }
+
+    private fun initializeViews() {
+        recyclerViewInvestments = findViewById(R.id.recycler_view_investments)
         editTextStartDate = findViewById(R.id.edit_text_start_date)
         editTextEndDate = findViewById(R.id.edit_text_end_date)
         buttonFilter = findViewById(R.id.button_filter)
         buttonClearFilter = findViewById(R.id.button_clear_filter)
+    }
 
+    private fun setupCurrency() {
         selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
         if (selectedCurrency == null) {
-            Log.e("InvestmentListActivity", "Currency not provided")
+            Log.e(TAG, "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
+    }
 
-        investmentDao = InvestmentDao(this) // TODO: Create InvestmentDao
-        investmentAdapter = InvestmentListAdapter(emptyList(), this) // TODO: Create InvestmentListAdapter and pass 'this' as the listener
-        recyclerViewInvestments.layoutManager = LinearLayoutManager(this)
-        recyclerViewInvestments.adapter = investmentAdapter
-
+    private fun setupInvestmentList() {
+        investmentDao = InvestmentDao(this)
+        investmentAdapter = InvestmentListAdapter(emptyList(), this)
+        recyclerViewInvestments.apply {
+            layoutManager = LinearLayoutManager(this@InvestmentListActivity)
+            adapter = investmentAdapter
+        }
         loadInvestments()
+    }
 
+    private fun setupListeners() {
         editTextStartDate.setOnClickListener {
             showDatePickerDialog(editTextStartDate)
         }
@@ -69,7 +87,9 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
         buttonClearFilter.setOnClickListener {
             clearFilter()
         }
+    }
 
+    private fun setupBottomNavigation() {
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNavigationView)
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -83,8 +103,13 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
     }
 
     private fun loadInvestments() {
-        val investments = investmentDao.getInvestmentsByCurrency(selectedCurrency!!) // TODO: Implement getInvestmentsByCurrency in InvestmentDao
-        investmentAdapter.updateData(investments)
+        try {
+            val investments = investmentDao.getInvestmentsByCurrency(selectedCurrency!!)
+            investmentAdapter.updateData(investments)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading investments", e)
+            Toast.makeText(this, "Error loading investments: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun filterInvestments() {
@@ -96,17 +121,22 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
             return
         }
 
-        val investments = investmentDao.getInvestmentsByCurrencyAndDateRange( // TODO: Implement getInvestmentsByCurrencyAndDateRange in InvestmentDao
-            selectedCurrency!!,
-            startDate?.time,
-            endDate?.time
-        )
-        investmentAdapter.updateData(investments)
+        try {
+            val investments = investmentDao.getInvestmentsByCurrencyAndDateRange(
+                selectedCurrency!!,
+                startDate?.time,
+                endDate?.time
+            )
+            investmentAdapter.updateData(investments)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error filtering investments", e)
+            Toast.makeText(this, "Error filtering investments: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun clearFilter() {
-        editTextStartDate.text = null
-        editTextEndDate.text = null
+        editTextStartDate.text.clear()
+        editTextEndDate.text.clear()
         loadInvestments()
     }
 
@@ -116,6 +146,7 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
             try {
                 dateFormatter.parse(dateString)
             } catch (e: Exception) {
+                Log.e(TAG, "Error parsing date", e)
                 Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show()
                 null
             }
@@ -130,7 +161,7 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
         val month = calendar.get(Calendar.MONTH)
         val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-        val datePickerDialog = DatePickerDialog(
+        DatePickerDialog(
             this,
             { _, selectedYear, selectedMonth, selectedDay ->
                 calendar.set(selectedYear, selectedMonth, selectedDay)
@@ -140,30 +171,48 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
             year,
             month,
             day
-        )
-        datePickerDialog.show()
+        ).show()
     }
 
     private fun navigateToDashboard() {
         val intent = Intent(this, DashboardActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         startActivity(intent)
         finish()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        investmentDao.close()
+        try {
+            investmentDao.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing database", e)
+        }
     }
 
     override fun onEditItem(investment: Investment) {
-        val intent = Intent(this, InvestmentEntryActivity::class.java)
-        intent.putExtra("EXTRA_INVESTMENT", investment)
-        startActivity(intent)
+        try {
+            val intent = Intent(this, InvestmentEntryActivity::class.java)
+            intent.putExtra("EXTRA_INVESTMENT", investment)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error starting InvestmentEntryActivity", e)
+            Toast.makeText(this, "Error opening investment: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDeleteItem(investment: Investment) {
-        investmentDao.deleteInvestment(investment) // TODO: Implement deleteInvestment in InvestmentDao
-        loadInvestments()
-        Toast.makeText(this, "Investment deleted", Toast.LENGTH_SHORT).show()
+        try {
+            val result = investmentDao.deleteInvestment(investment)
+            if (result > 0) {
+                loadInvestments()
+                Toast.makeText(this, "Investment deleted", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Failed to delete investment", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting investment", e)
+            Toast.makeText(this, "Error deleting investment: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 }

@@ -1,6 +1,5 @@
 package com.money.moneymoney
 
-import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -44,7 +43,15 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
-        // Initialize TextViews for Financial Summary
+        initializeViews()
+        setupRecyclerView()
+        initializeDAOs()
+        setupBottomNavigation()
+        setupClickListeners()
+        loadDashboardData()
+    }
+
+    private fun initializeViews() {
         textViewIncomeINR = findViewById(R.id.textViewIncomeINR)
         textViewExpensesINR = findViewById(R.id.textViewExpensesINR)
         textViewInvestmentsINR = findViewById(R.id.textViewInvestmentsINR)
@@ -52,111 +59,102 @@ class DashboardActivity : AppCompatActivity() {
         textViewExpensesAED = findViewById(R.id.textViewExpensesAED)
         textViewInvestmentsAED = findViewById(R.id.textViewInvestmentsAED)
 
-        // Initialize RecyclerView for Goal Progress
-        recyclerViewGoalProgress = findViewById(R.id.recyclerViewGoalProgress)
-        recyclerViewGoalProgress.layoutManager = LinearLayoutManager(this)
-        goalProgressAdapter = GoalProgressAdapter(emptyList()) // Initialize with an empty list
-        recyclerViewGoalProgress.adapter = goalProgressAdapter
-
-        // Initialize DAOs
-        goalDao = GoalDao(this)
-        investmentDao = InvestmentDao(this)
-        incomeDao = IncomeDao(this)
-        expenseDao = ExpenseDao(this)
-
-        // Initialize Quick Action Buttons
         buttonAddIncome = findViewById(R.id.buttonAddIncome)
         buttonAddExpense = findViewById(R.id.buttonAddExpense)
         buttonAddInvestment = findViewById(R.id.buttonAddInvestment)
         buttonAddGoal = findViewById(R.id.buttonAddGoal)
         buttonViewReports = findViewById(R.id.buttonViewReports)
-        
-        // Initialize Bottom Navigation
         bottomNavigation = findViewById(R.id.bottomNavigationView)
-        bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.menu_home -> {
-                    // Already on home screen
-                    true
-                }
+    }
+
+    private fun setupRecyclerView() {
+        recyclerViewGoalProgress = findViewById(R.id.recyclerViewGoalProgress)
+        recyclerViewGoalProgress.layoutManager = LinearLayoutManager(this)
+        goalProgressAdapter = GoalProgressAdapter(emptyList())
+        recyclerViewGoalProgress.adapter = goalProgressAdapter
+    }
+
+    private fun initializeDAOs() {
+        goalDao = GoalDao(this)
+        investmentDao = InvestmentDao(this)
+        incomeDao = IncomeDao(this)
+        expenseDao = ExpenseDao(this)
+    }
+
+    private fun setupBottomNavigation() {
+        bottomNavigation.setOnItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.menu_home -> true // Already on home screen
                 else -> false
             }
         }
-        
-        // Set the current item to home
         bottomNavigation.selectedItemId = R.id.menu_home
+    }
 
-        // Set OnClickListeners for Quick Action Buttons
+    private fun setupClickListeners() {
         buttonAddIncome.setOnClickListener {
-            Log.d(TAG, "Add Income button clicked")
-            try {
-                val intent = Intent(this, IncomeEntryActivity::class.java)
-                Log.d(TAG, "Starting IncomeEntryActivity")
-                startActivity(intent)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error starting IncomeEntryActivity", e)
-                val errorMessage = when (e) {
-                    is SecurityException -> "Permission denied to start Income Entry"
-                    is android.content.ActivityNotFoundException -> "Income Entry screen not found"
-                    else -> "Error opening Income Entry: ${e.message}"
-                }
-                Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-            }
-        }
-        buttonAddExpense.setOnClickListener {
-            Log.d(TAG, "Add Expense button clicked")
-            try {
-                val intent = Intent(this, ExpenseEntryActivity::class.java)
-                startActivity(intent)
-                Log.d(TAG, "Successfully started ExpenseEntryActivity")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error starting ExpenseEntryActivity", e)
-                Log.e(TAG, "Stack trace: ${e.stackTraceToString()}")
-                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-            }
-        }
-        buttonAddInvestment.setOnClickListener {
-            Log.d(TAG, "Add Investment button clicked")
-            try {
-                val intent = Intent(this, InvestmentEntryActivity::class.java)
-                Log.d(TAG, "Starting InvestmentEntryActivity")
-                startActivity(intent)
-            } catch (e: Exception) {
-                Log.e(TAG, "Error starting InvestmentEntryActivity", e)
-                val errorMessage = when (e) {
-                    is SecurityException -> "Permission denied to start Investment Entry"
-                    is android.content.ActivityNotFoundException -> "Investment Entry screen not found"
-                    else -> "Error opening Investment Entry: ${e.message}"
-                }
-                Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-            }
-        }
-        buttonAddGoal.setOnClickListener {
-            Log.d(TAG, "Add Goal button clicked")
-            try {
-                val intent = Intent(this, GoalEntryActivity::class.java)
-                startActivity(intent)
-                Log.d(TAG, "Successfully started GoalEntryActivity")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error starting GoalEntryActivity", e)
-                Log.e(TAG, "Stack trace: ${e.stackTraceToString()}")
-                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-            }
-        }
-        buttonViewReports.setOnClickListener {
-            Log.d(TAG, "View Reports button clicked")
-            try {
-                val intent = Intent(this, CurrencySelectionActivity::class.java)
-                startActivity(intent)
-                Log.d(TAG, "Successfully started CurrencySelectionActivity")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error starting CurrencySelectionActivity", e)
-                Log.e(TAG, "Stack trace: ${e.stackTraceToString()}")
-                Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-            }
+            startActivityWithErrorHandling(
+                IncomeEntryActivity::class.java,
+                "Add Income",
+                "Income Entry"
+            )
         }
 
-        // Load data for the dashboard
+        buttonAddExpense.setOnClickListener {
+            startActivityWithErrorHandling(
+                ExpenseEntryActivity::class.java,
+                "Add Expense",
+                "Expense Entry"
+            )
+        }
+
+        buttonAddInvestment.setOnClickListener {
+            startActivityWithErrorHandling(
+                InvestmentEntryActivity::class.java,
+                "Add Investment",
+                "Investment Entry"
+            )
+        }
+
+        buttonAddGoal.setOnClickListener {
+            startActivityWithErrorHandling(
+                GoalEntryActivity::class.java,
+                "Add Goal",
+                "Goal Entry"
+            )
+        }
+
+        buttonViewReports.setOnClickListener {
+            startActivityWithErrorHandling(
+                CurrencySelectionActivity::class.java,
+                "View Reports",
+                "Currency Selection"
+            )
+        }
+    }
+
+    private fun startActivityWithErrorHandling(
+        activityClass: Class<*>,
+        action: String,
+        screenName: String
+    ) {
+        Log.d(TAG, "$action button clicked")
+        try {
+            val intent = Intent(this, activityClass)
+            startActivity(intent)
+            Log.d(TAG, "Successfully started ${activityClass.simpleName}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error starting $screenName", e)
+            val errorMessage = when (e) {
+                is SecurityException -> "Permission denied to start $screenName"
+                is android.content.ActivityNotFoundException -> "$screenName screen not found"
+                else -> "Error opening $screenName: ${e.message}"
+            }
+            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadDashboardData() {
         loadFinancialSummary()
         loadGoalProgress()
     }
@@ -177,27 +175,37 @@ class DashboardActivity : AppCompatActivity() {
         var totalExpensesAED = 0.00
         var totalInvestmentsAED = 0.00
 
-        for (income in incomeList.asSequence()) {
+        for (income in incomeList) {
             when (income.currency) {
                 "INR" -> totalIncomeINR += income.value
                 "AED" -> totalIncomeAED += income.value
             }
         }
 
-        for (expense in expenseList.asSequence()) {
+        for (expense in expenseList) {
             when (expense.currency) {
                 "INR" -> totalExpensesINR += expense.value
                 "AED" -> totalExpensesAED += expense.value
             }
         }
 
-        for (investment in investmentList.asSequence()) {
+        for (investment in investmentList) {
             when (investment.currency) {
                 "INR" -> totalInvestmentsINR += investment.value
                 "AED" -> totalInvestmentsAED += investment.value
             }
         }
 
+        updateFinancialSummaryViews(
+            totalIncomeINR, totalExpensesINR, totalInvestmentsINR,
+            totalIncomeAED, totalExpensesAED, totalInvestmentsAED
+        )
+    }
+
+    private fun updateFinancialSummaryViews(
+        totalIncomeINR: Double, totalExpensesINR: Double, totalInvestmentsINR: Double,
+        totalIncomeAED: Double, totalExpensesAED: Double, totalInvestmentsAED: Double
+    ) {
         textViewIncomeINR.text = "Income: ₹${String.format("%.2f", totalIncomeINR)}"
         textViewExpensesINR.text = "Expenses: ₹${String.format("%.2f", totalExpensesINR)}"
         textViewInvestmentsINR.text = "Investments: ₹${String.format("%.2f", totalInvestmentsINR)}"
@@ -213,11 +221,22 @@ class DashboardActivity : AppCompatActivity() {
 
         for (goal in activeGoals) {
             val investmentsForGoal = investmentDao.getInvestmentsByGoalId(goal.id)
-            val amountInvested = investmentsForGoal.sumOf { it.value  }
-            val percentageProgress = if (goal.targetValue > 0) (amountInvested / goal.targetValue.toDouble() * 100).toInt() else 0
+            val amountInvested = investmentsForGoal.sumOf { it.value }
+            val percentageProgress = if (goal.targetValue > 0) {
+                (amountInvested / goal.targetValue * 100).toInt()
+            } else {
+                0
+            }
             val remainingAmount = goal.targetValue - amountInvested
 
-            goalProgressList.add(GoalWithProgress(goal = goal, amountInvested = amountInvested, percentageProgress = percentageProgress, remainingAmount = remainingAmount))
+            goalProgressList.add(
+                GoalWithProgress(
+                    goal = goal,
+                    amountInvested = amountInvested,
+                    percentageProgress = percentageProgress,
+                    remainingAmount = remainingAmount
+                )
+            )
         }
 
         goalProgressAdapter.updateGoals(goalProgressList)
@@ -225,10 +244,14 @@ class DashboardActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        goalDao.close()
-        investmentDao.close()
-        incomeDao.close()
-        expenseDao.close()
+        try {
+            goalDao.close()
+            investmentDao.close()
+            incomeDao.close()
+            expenseDao.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing database connections", e)
+        }
     }
 }
 
