@@ -166,7 +166,7 @@ class DashboardActivity : AppCompatActivity() {
         val currentYear = calendar.get(Calendar.YEAR)
         val currentMonth = calendar.get(Calendar.MONTH)
 
-        val incomeList = incomeDao.getIncomeForMonth(currentYear, currentMonth)
+        val incomeList = incomeDao.getIncomesForMonth(currentYear, currentMonth)
         val expenseList = expenseDao.getExpensesForMonth(currentYear, currentMonth)
         val investmentList = investmentDao.getInvestmentsForMonth(currentYear, currentMonth)
 
@@ -177,21 +177,21 @@ class DashboardActivity : AppCompatActivity() {
         var totalExpensesAED = 0.00
         var totalInvestmentsAED = 0.00
 
-        for (income in incomeList) {
+        for (income in incomeList.asSequence()) {
             when (income.currency) {
                 "INR" -> totalIncomeINR += income.value
                 "AED" -> totalIncomeAED += income.value
             }
         }
 
-        for (expense in expenseList) {
+        for (expense in expenseList.asSequence()) {
             when (expense.currency) {
                 "INR" -> totalExpensesINR += expense.value
                 "AED" -> totalExpensesAED += expense.value
             }
         }
 
-        for (investment in investmentList) {
+        for (investment in investmentList.asSequence()) {
             when (investment.currency) {
                 "INR" -> totalInvestmentsINR += investment.value
                 "AED" -> totalInvestmentsAED += investment.value
