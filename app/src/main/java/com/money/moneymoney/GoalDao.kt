@@ -5,7 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import com.money.moneymoney.DatabaseHelper.Companion.COLUMN_GOAL_COMPLETION_DATE
-import com.money.moneymoney.DatabaseHelper.Companion.COLUMN_GOAL_CREATION_DATE // Import this
+import com.money.moneymoney.DatabaseHelper.Companion.COLUMN_GOAL_CREATION_DATE
 import com.money.moneymoney.DatabaseHelper.Companion.COLUMN_GOAL_CURRENCY
 import com.money.moneymoney.DatabaseHelper.Companion.COLUMN_GOAL_ID
 import com.money.moneymoney.DatabaseHelper.Companion.COLUMN_GOAL_NAME
@@ -37,22 +37,22 @@ class GoalDao(context: Context) {
 
     fun updateGoalStatus(goalId: Long, status: String, completionDate: Long? = null): Int {
         val values = ContentValues().apply {
-            put(DatabaseHelper.COLUMN_GOAL_STATUS, status)
-            completionDate?.let { put(DatabaseHelper.COLUMN_GOAL_COMPLETION_DATE, it) }
+            put(COLUMN_GOAL_STATUS, status)
+            completionDate?.let { put(COLUMN_GOAL_COMPLETION_DATE, it) }
         }
-        return database.update(TABLE_GOALS, values, "${DatabaseHelper.COLUMN_GOAL_ID} = ?", arrayOf(goalId.toString()))
+        return database.update(TABLE_GOALS, values, "$COLUMN_GOAL_ID = ?", arrayOf(goalId.toString()))
     }
 
-    fun getAllActiveGoals(): MutableList<Goal> {
+    fun getAllActiveGoals(): MutableList<GoalObject> {
         return getGoalsByStatus(STATUS_ACTIVE)
     }
 
-    fun getAllCompletedGoals(): MutableList<Goal> {
+    fun getAllCompletedGoals(): MutableList<GoalObject> {
         return getGoalsByStatus(STATUS_COMPLETED)
     }
 
-    private fun getGoalsByStatus(status: String): MutableList<Goal> {
-        val goals = mutableListOf<Goal>()
+    private fun getGoalsByStatus(status: String): MutableList<GoalObject> {
+        val goals = mutableListOf<GoalObject>()
         val cursor: Cursor = database.query(
             TABLE_GOALS,
             arrayOf(
@@ -82,7 +82,7 @@ class GoalDao(context: Context) {
         return goals
     }
 
-    fun updateGoal(goal: Goal): Int {
+    fun updateGoal(goal: GoalObject): Int {
         val values = ContentValues().apply {
             put(COLUMN_GOAL_NAME, goal.name)
             put(COLUMN_GOAL_TARGET_VALUE, goal.targetValue)
@@ -94,16 +94,11 @@ class GoalDao(context: Context) {
         return database.update(TABLE_GOALS, values, "$COLUMN_GOAL_ID = ?", arrayOf(goal.id.toString()))
     }
 
-    fun deleteGoal(goal: Goal): Int {
+    fun deleteGoal(goal: GoalObject): Int {
         return database.delete(TABLE_GOALS, "$COLUMN_GOAL_ID = ?", arrayOf(goal.id.toString()))
     }
 
-
-
-
-
-
-    fun getGoalById(goalId: Long): Goal? {
+    fun getGoalById(goalId: Long): GoalObject? {
         val cursor: Cursor = database.query(
             TABLE_GOALS,
             arrayOf(
@@ -129,22 +124,24 @@ class GoalDao(context: Context) {
             }
         }
     }
-    private fun createGoalFromCursor(cursor: Cursor): Goal {
-        val id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_GOAL_ID))
-        val name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_GOAL_NAME))
-        val targetValue = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_GOAL_TARGET_VALUE))
-        val currency = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_GOAL_CURRENCY))
-        val creationDate = cursor.getLongOrNull(cursor.getColumnIndexOrThrow(COLUMN_GOAL_CREATION_DATE))
-        val status = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_GOAL_STATUS))
-        val completionDate = cursor.getLongOrNull(cursor.getColumnIndexOrThrow(COLUMN_GOAL_COMPLETION_DATE))
-        return Goal(id, name, targetValue, currency, creationDate, status, completionDate)
-    }
 
-    fun close() {
-        dbHelper.close()
+    private fun createGoalFromCursor(cursor: Cursor): GoalObject {
+        return GoalObject(
+            id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_GOAL_ID)),
+            name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_GOAL_NAME)),
+            targetValue = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_GOAL_TARGET_VALUE)),
+            currency = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_GOAL_CURRENCY)),
+            creationDate = cursor.getLongOrNull(cursor.getColumnIndexOrThrow(COLUMN_GOAL_CREATION_DATE)),
+            status = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_GOAL_STATUS)),
+            completionDate = cursor.getLongOrNull(cursor.getColumnIndexOrThrow(COLUMN_GOAL_COMPLETION_DATE))
+        )
     }
 
     private fun Cursor.getLongOrNull(columnIndex: Int): Long? {
         return if (isNull(columnIndex)) null else getLong(columnIndex)
+    }
+
+    fun close() {
+        dbHelper.close()
     }
 }

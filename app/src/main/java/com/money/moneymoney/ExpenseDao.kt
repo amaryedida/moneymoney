@@ -33,9 +33,9 @@ class ExpenseDao(context: Context) {
         return id
     }
 
-    fun getExpensesForMonth(year: Int, month: Int): List<Expense> {
+    fun getExpensesForMonth(year: Int, month: Int): List<ExpenseObject> {
         Log.d(TAG, "Getting expenses for year: $year, month: $month")
-        val expenseList = mutableListOf<Expense>()
+        val expenseList = mutableListOf<ExpenseObject>()
         val calendar = Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.MONTH, month)
@@ -71,22 +71,16 @@ class ExpenseDao(context: Context) {
         Log.d(TAG, "Found ${cursor.count} expenses")
         cursor.use {
             while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_ID))
-                val currency = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CURRENCY))
-                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CATEGORY))
-                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_EXPENSE_VALUE))
-                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_COMMENT))
-                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_DATE))
-                val expense = Expense(id, currency, category, value, comment, date)
+                val expense = createExpenseFromCursor(it)
                 expenseList.add(expense)
             }
         }
         return expenseList
     }
     // Method to get expenses filtered by currency (for initial display)
-    fun getExpensesByCurrency(currency: String): List<Expense> {
+    fun getExpensesByCurrency(currency: String): List<ExpenseObject> {
         Log.d(TAG, "Getting expenses for currency: $currency")
-        val expenseList = mutableListOf<Expense>()
+        val expenseList = mutableListOf<ExpenseObject>()
         val cursor = database.query(
             TABLE_EXPENSES,
             arrayOf(
@@ -107,13 +101,7 @@ class ExpenseDao(context: Context) {
         Log.d(TAG, "Found ${cursor.count} expenses")
         cursor.use {
             while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_ID))
-                val expenseCurrency = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CURRENCY))
-                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CATEGORY))
-                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_EXPENSE_VALUE))
-                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_COMMENT))
-                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_DATE))
-                val expense = Expense(id, expenseCurrency, category, value, comment, date)
+                val expense = createExpenseFromCursor(it)
                 expenseList.add(expense)
             }
         }
@@ -121,9 +109,9 @@ class ExpenseDao(context: Context) {
     }
 
     // Method to get expenses filtered by currency and optional date range
-    fun getExpensesByCurrencyAndDateRange(currency: String, startDate: Long? = null, endDate: Long? = null): List<Expense> {
+    fun getExpensesByCurrencyAndDateRange(currency: String, startDate: Long? = null, endDate: Long? = null): List<ExpenseObject> {
         Log.d(TAG, "Getting expenses for currency: $currency, startDate: $startDate, endDate: $endDate")
-        val expenseList = mutableListOf<Expense>()
+        val expenseList = mutableListOf<ExpenseObject>()
         val selection = StringBuilder("${COLUMN_EXPENSE_CURRENCY} = ?")
         val selectionArgs = mutableListOf(currency)
 
@@ -159,26 +147,17 @@ class ExpenseDao(context: Context) {
         Log.d(TAG, "Found ${cursor.count} expenses")
         cursor.use {
             while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_ID))
-                val expenseCurrency = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CURRENCY))
-                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CATEGORY))
-                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_EXPENSE_VALUE))
-                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_COMMENT))
-                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_DATE))
-                val expense = Expense(id, expenseCurrency, category, value, comment, date)
+                val expense = createExpenseFromCursor(it)
                 expenseList.add(expense)
             }
         }
         return expenseList
     }
 
-    // ... other methods (close) ...
-}
-
     // * New method to get the last 10 expenses *
-    fun getLastTenExpenses(): List<Expense> {
+    fun getLastTenExpenses(): List<ExpenseObject> {
         Log.d(TAG, "Getting last 10 expenses")
-        val expenses = mutableListOf<Expense>()
+        val expenses = mutableListOf<ExpenseObject>()
         val cursor: Cursor = database.query(
             TABLE_EXPENSES,
             arrayOf(
@@ -199,20 +178,14 @@ class ExpenseDao(context: Context) {
         Log.d(TAG, "Found ${cursor.count} expenses")
         cursor.use {
             while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_ID))
-                val currency = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CURRENCY))
-                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_CATEGORY))
-                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_EXPENSE_VALUE))
-                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_EXPENSE_COMMENT))
-                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_EXPENSE_DATE))
-                val expense = Expense(id, currency, category, value, comment, date)
+                val expense = createExpenseFromCursor(it)
                 expenses.add(expense)
             }
         }
         return expenses
     }
 
-    fun updateExpense(expense: Expense) {
+    fun updateExpense(expense: ExpenseObject) {
         Log.d(TAG, "Updating expense: ${expense.id}")
         val values = ContentValues().apply {
             put(COLUMN_EXPENSE_CURRENCY, expense.currency)
@@ -230,20 +203,29 @@ class ExpenseDao(context: Context) {
         Log.d(TAG, "Updated expense with ID: ${expense.id}, rows affected: $rowsAffected")
     }
 
-    fun deleteExpense(expense: Expense) {
+    fun deleteExpense(expense: ExpenseObject) {
         Log.d(TAG, "Deleting expense: ${expense.id}")
         val rowsAffected = database.delete(TABLE_EXPENSES, "${COLUMN_EXPENSE_ID} = ?", arrayOf(expense.id.toString()))
         Log.d(TAG, "Deleted expense with ID: ${expense.id}, rows affected: $rowsAffected")
     }
 
+    private fun createExpenseFromCursor(cursor: Cursor): ExpenseObject {
+        return ExpenseObject(
+            id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_EXPENSE_ID)),
+            currency = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EXPENSE_CURRENCY)),
+            category = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EXPENSE_CATEGORY)),
+            value = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_EXPENSE_VALUE)),
+            comment = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EXPENSE_COMMENT)),
+            date = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_EXPENSE_DATE))
+        )
+    }
 
-
-        fun close() {
-            dbHelper.close()
-        }
+    fun close() {
+        dbHelper.close()
+    }
 }
 
-data class Expense(
+data class ExpenseObject(
     val id: Long,
     val currency: String,
     val category: String,

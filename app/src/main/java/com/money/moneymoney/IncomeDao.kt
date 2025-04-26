@@ -230,7 +230,6 @@ class IncomeDao(context: Context) {
     }
 }
 
-
 data class Income(
 
     val id: Long,
