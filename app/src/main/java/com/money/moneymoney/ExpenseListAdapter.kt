@@ -26,26 +26,28 @@ class ExpenseListAdapter(private var expenses: List<ExpenseObject>) :
     }
 
     class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val dateTextView: TextView = itemView.findViewById(R.id.textViewExpenseDate)
-        val currencyTextView: TextView = itemView.findViewById(R.id.textViewExpenseCurrency)
-        val valueTextView: TextView = itemView.findViewById(R.id.textViewExpenseValue)
-        val categoryTextView: TextView = itemView.findViewById(R.id.textViewExpenseCategory)
-        val editButton: TextView = itemView.findViewById(R.id.textViewEditExpense)
-        val deleteButton: TextView = itemView.findViewById(R.id.textViewDeleteExpense)
+        val categoryTextView: TextView = itemView.findViewById(R.id.text_view_category)
+        val valueTextView: TextView = itemView.findViewById(R.id.text_view_value)
+        val currencyTextView: TextView = itemView.findViewById(R.id.text_view_currency)
+        val dateTextView: TextView = itemView.findViewById(R.id.text_view_date)
+        val commentTextView: TextView = itemView.findViewById(R.id.text_view_comment)
+        val editButton: View = itemView.findViewById(R.id.button_edit)
+        val deleteButton: View = itemView.findViewById(R.id.button_delete)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseViewHolder {
         val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_expense, parent, false)
+            .inflate(R.layout.item_expense_list, parent, false)
         return ExpenseViewHolder(itemView)
     }
 
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val currentExpense = expenses[position]
-        holder.dateTextView.text = sdf.format(Date(currentExpense.date))
-        holder.currencyTextView.text = currentExpense.currency
-        holder.valueTextView.text = String.format(Locale.getDefault(), "%.2f", currentExpense.value)
         holder.categoryTextView.text = currentExpense.category
+        holder.valueTextView.text = String.format(Locale.getDefault(), "%.2f", currentExpense.value)
+        holder.currencyTextView.text = currentExpense.currency
+        holder.dateTextView.text = sdf.format(Date(currentExpense.date))
+        holder.commentTextView.text = currentExpense.comment ?: ""
 
         holder.editButton.setOnClickListener {
             listener?.onEditItem(currentExpense)
