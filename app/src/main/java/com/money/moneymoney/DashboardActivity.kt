@@ -135,22 +135,15 @@ class DashboardActivity : AppCompatActivity() {
 
     private fun startActivityWithErrorHandling(
         activityClass: Class<*>,
-        action: String,
-        screenName: String
+        actionName: String,
+        activityName: String
     ) {
-        Log.d(TAG, "$action button clicked")
         try {
             val intent = Intent(this, activityClass)
             startActivity(intent)
-            Log.d(TAG, "Successfully started ${activityClass.simpleName}")
         } catch (e: Exception) {
-            Log.e(TAG, "Error starting $screenName", e)
-            val errorMessage = when (e) {
-                is SecurityException -> "Permission denied to start $screenName"
-                is android.content.ActivityNotFoundException -> "$screenName screen not found"
-                else -> "Error opening $screenName: ${e.message}"
-            }
-            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Error starting $activityName activity", e)
+            Toast.makeText(this, "Error opening $actionName", Toast.LENGTH_SHORT).show()
         }
     }
 
