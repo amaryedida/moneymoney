@@ -59,11 +59,14 @@ class ExpenseEntryActivity : AppCompatActivity() {
         // Initialize DAO
         expenseDao = ExpenseDao(this)
 
-        // Setup category spinner
-        setupCategorySpinner()
-
         // Check if we're editing an existing expense
-        editingExpense = intent.getParcelableExtra(EXTRA_EXPENSE)
+        editingExpense = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(EXTRA_EXPENSE, ExpenseObject::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(EXTRA_EXPENSE)
+        }
+
         if (editingExpense != null) {
             populateFields(editingExpense!!)
         }
@@ -129,18 +132,22 @@ class ExpenseEntryActivity : AppCompatActivity() {
         editTextExpenseDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
 
         // Set category in spinner
-        val adapter = spinnerExpenseCategory.adapter as ArrayAdapter<String>
-        val position = (0 until adapter.count).firstOrNull { 
-            adapter.getItem(it) == expense.category 
-        } ?: 0
-        spinnerExpenseCategory.setSelection(position)
+        val categoryAdapter = spinnerExpenseCategory.adapter as? ArrayAdapter<String>
+        if (categoryAdapter != null) {
+            val position = (0 until categoryAdapter.count).firstOrNull { 
+                categoryAdapter.getItem(it) == expense.category 
+            } ?: 0
+            spinnerExpenseCategory.setSelection(position)
+        }
 
         // Set currency in spinner
-        val currencyAdapter = spinnerExpenseCurrency.adapter
-        val currencyPosition = (0 until currencyAdapter.count).firstOrNull {
-            currencyAdapter.getItem(it).toString() == expense.currency
-        } ?: 0
-        spinnerExpenseCurrency.setSelection(currencyPosition)
+        val currencyAdapter = spinnerExpenseCurrency.adapter as? ArrayAdapter<String>
+        if (currencyAdapter != null) {
+            val currencyPosition = (0 until currencyAdapter.count).firstOrNull {
+                currencyAdapter.getItem(it) == expense.currency
+            } ?: 0
+            spinnerExpenseCurrency.setSelection(currencyPosition)
+        }
     }
 
     private fun showDatePicker() {
