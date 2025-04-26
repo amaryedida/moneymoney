@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,6 +23,14 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
     private lateinit var editTextEndDate: EditText
     private lateinit var buttonFilter: Button
     private lateinit var buttonClearFilter: Button
+
+    private val editGoalLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            loadGoals() // Refresh the list after editing
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +64,7 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
     override fun onEditItem(goal: GoalObject) {
         val intent = Intent(this, GoalEntryActivity::class.java)
         intent.putExtra("EXTRA_GOAL", goal)
-        startActivityForResult(intent, EDIT_GOAL_REQUEST)
+        editGoalLauncher.launch(intent)
     }
 
     override fun onDeleteItem(goal: GoalObject) {
@@ -111,13 +120,6 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
         val intent = Intent(this, DashboardActivity::class.java)
         startActivity(intent)
         finish()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == EDIT_GOAL_REQUEST && resultCode == RESULT_OK) {
-            loadGoals() // Refresh the list after editing
-        }
     }
 
     companion object {
