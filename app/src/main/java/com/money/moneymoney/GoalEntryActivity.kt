@@ -114,9 +114,6 @@ class GoalEntryActivity : AppCompatActivity() {
         }
         Log.d(TAG, "Bottom navigation setup complete")
 
-        // Set the current item to home
-        bottomNavigationView.selectedItemId = R.id.menu_home
-
         updateCreationDateEditText()
         Log.d(TAG, "GoalEntryActivity onCreate completed successfully")
     }
