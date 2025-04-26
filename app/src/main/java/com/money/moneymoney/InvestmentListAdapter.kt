@@ -10,12 +10,12 @@ import java.util.Locale
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class InvestmentListAdapter(private var investments: List<Investment> = emptyList()) :
+class InvestmentListAdapter(private var investments: List<InvestmentObject> = emptyList()) :
     RecyclerView.Adapter<InvestmentListAdapter.InvestmentViewHolder>() {
 
     interface OnItemActionListener {
-        fun onEditItem(investment: Investment)
-        fun onDeleteItem(investment: Investment)
+        fun onEditItem(investment: InvestmentObject)
+        fun onDeleteItem(investment: InvestmentObject)
     }
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -33,7 +33,7 @@ class InvestmentListAdapter(private var investments: List<Investment> = emptyLis
 
     private var listener: OnItemActionListener? = null
 
-    constructor(investments: List<Investment>, listener: OnItemActionListener) : this() {
+    constructor(investments: List<InvestmentObject>, listener: OnItemActionListener) : this() {
         this.listener = listener
     }
 
@@ -67,7 +67,7 @@ class InvestmentListAdapter(private var investments: List<Investment> = emptyLis
 
     override fun getItemCount() = investments.size
 
-    fun updateData(newInvestments: List<Investment>) {
+    fun updateData(newInvestments: List<InvestmentObject>) {
         investments = newInvestments
         notifyDataSetChanged()
     }

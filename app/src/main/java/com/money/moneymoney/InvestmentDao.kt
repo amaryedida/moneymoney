@@ -42,8 +42,8 @@ class InvestmentDao(context: Context) {
         return database.insert(TABLE_INVESTMENTS, null, values)
     }
 
-    fun getInvestmentsByCurrency(currency: String): List<Investment> {
-        val investmentList = mutableListOf<Investment>()
+    fun getInvestmentsByCurrency(currency: String): List<InvestmentObject> {
+        val investmentList = mutableListOf<InvestmentObject>()
         val query = """
             SELECT i.*, g.name AS goal_name
             FROM $TABLE_INVESTMENTS i
@@ -66,8 +66,8 @@ class InvestmentDao(context: Context) {
         currency: String,
         startDate: Long?,
         endDate: Long?
-    ): List<Investment> {
-        val investmentList = mutableListOf<Investment>()
+    ): List<InvestmentObject> {
+        val investmentList = mutableListOf<InvestmentObject>()
         val queryBuilder = StringBuilder("""
             SELECT i.*, g.name AS goal_name
             FROM $TABLE_INVESTMENTS i
@@ -101,8 +101,8 @@ class InvestmentDao(context: Context) {
         return investmentList
     }
 
-    fun getInvestmentsByGoalId(goalId: Long): List<Investment> {
-        val investments = mutableListOf<Investment>()
+    fun getInvestmentsByGoalId(goalId: Long): List<InvestmentObject> {
+        val investments = mutableListOf<InvestmentObject>()
         val query = """
             SELECT i.*, g.name AS goal_name
             FROM $TABLE_INVESTMENTS i
@@ -120,7 +120,7 @@ class InvestmentDao(context: Context) {
         return investments
     }
 
-    fun getInvestmentsForMonth(year: Int, month: Int): List<Investment> {
+    fun getInvestmentsForMonth(year: Int, month: Int): List<InvestmentObject> {
         val calendar = Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.MONTH, month)
@@ -144,7 +144,7 @@ class InvestmentDao(context: Context) {
         """.trimIndent()
 
         val cursor = database.rawQuery(query, arrayOf(startDate.toString(), endDate.toString()))
-        val investments = mutableListOf<Investment>()
+        val investments = mutableListOf<InvestmentObject>()
         
         cursor.use {
             while (it.moveToNext()) {
@@ -154,7 +154,7 @@ class InvestmentDao(context: Context) {
         return investments
     }
 
-    fun updateInvestment(investment: Investment): Int {
+    fun updateInvestment(investment: InvestmentObject): Int {
         val values = ContentValues().apply {
             put(COLUMN_INVESTMENT_CURRENCY, investment.currency)
             put(COLUMN_INVESTMENT_CATEGORY, investment.category)
@@ -171,7 +171,7 @@ class InvestmentDao(context: Context) {
         )
     }
 
-    fun deleteInvestment(investment: Investment): Int {
+    fun deleteInvestment(investment: InvestmentObject): Int {
         return database.delete(
             TABLE_INVESTMENTS,
             "$COLUMN_INVESTMENT_ID = ?",
@@ -179,8 +179,8 @@ class InvestmentDao(context: Context) {
         )
     }
 
-    private fun createInvestmentFromCursor(cursor: Cursor): Investment {
-        return Investment(
+    private fun createInvestmentFromCursor(cursor: Cursor): InvestmentObject {
+        return InvestmentObject(
             id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_ID)),
             currency = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_CURRENCY)),
             category = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_CATEGORY)),
@@ -202,5 +202,25 @@ class InvestmentDao(context: Context) {
 
     fun close() {
         dbHelper.close()
+    }
+
+    fun getLastTenInvestments(): List<InvestmentObject> {
+        val query = """
+            SELECT i.*, g.name AS goal_name
+            FROM $TABLE_INVESTMENTS i
+            LEFT JOIN $TABLE_GOALS g ON i.$COLUMN_INVESTMENT_GOAL_ID = g.$COLUMN_GOAL_ID
+            ORDER BY i.$COLUMN_INVESTMENT_DATE DESC
+            LIMIT 10
+        """.trimIndent()
+
+        val cursor = database.rawQuery(query, null)
+        val investments = mutableListOf<InvestmentObject>()
+
+        cursor.use {
+            while (it.moveToNext()) {
+                investments.add(createInvestmentFromCursor(it))
+            }
+        }
+        return investments
     }
 }

@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class Investment(
+data class InvestmentObject(
     val id: Long,
     val currency: String,
     val category: String,

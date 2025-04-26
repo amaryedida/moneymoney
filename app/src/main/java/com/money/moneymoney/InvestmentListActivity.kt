@@ -190,7 +190,7 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
         }
     }
 
-    override fun onEditItem(investment: Investment) {
+    override fun onEditItem(investment: InvestmentObject) {
         try {
             val intent = Intent(this, InvestmentEntryActivity::class.java)
             intent.putExtra("EXTRA_INVESTMENT", investment)
@@ -201,7 +201,7 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
         }
     }
 
-    override fun onDeleteItem(investment: Investment) {
+    override fun onDeleteItem(investment: InvestmentObject) {
         try {
             val result = investmentDao.deleteInvestment(investment)
             if (result > 0) {

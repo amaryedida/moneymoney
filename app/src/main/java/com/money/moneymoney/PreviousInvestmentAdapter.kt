@@ -9,8 +9,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class PreviousInvestmentAdapter(
-    private var previousInvestments: List<Investment>,
+class   PreviousInvestmentAdapter(
+    private var previousInvestments: List<InvestmentObject>,
     private val goalDao: GoalDao
 ) : RecyclerView.Adapter<PreviousInvestmentAdapter.PreviousInvestmentViewHolder>() {
 
@@ -52,7 +52,7 @@ class PreviousInvestmentAdapter(
 
     override fun getItemCount() = previousInvestments.size
 
-    fun updateData(newList: List<Investment>) {
+    fun updateData(newList: List<InvestmentObject>) {
         previousInvestments = newList
         notifyDataSetChanged()
     }
