@@ -125,9 +125,6 @@ class ExpenseEntryActivity : AppCompatActivity() {
         }
         Log.d(TAG, "Bottom navigation setup complete")
 
-        // Set the current item to home
-        bottomNavigation.selectedItemId = R.id.menu_home
-
         // Set up RecyclerView for previous expenses
         recyclerViewPreviousExpenses.layoutManager = LinearLayoutManager(this)
         previousExpensesAdapter = PreviousExpenseAdapter(emptyList())
