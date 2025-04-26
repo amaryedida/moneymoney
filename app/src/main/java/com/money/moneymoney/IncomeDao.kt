@@ -31,8 +31,8 @@ class IncomeDao(context: Context) {
         return id
     }
 
-    fun getIncomesForMonth(year: Int, month: Int): List<Income> {
-        val incomeList = mutableListOf<Income>()
+    fun getIncomesForMonth(year: Int, month: Int): List<IncomeObject> {
+        val incomeList = mutableListOf<IncomeObject>()
         val calendar = Calendar.getInstance().apply {
             set(Calendar.YEAR, year)
             set(Calendar.MONTH, month)
@@ -67,22 +67,16 @@ class IncomeDao(context: Context) {
 
         cursor.use {
             while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_INCOME_ID))
-                val currency = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_CURRENCY))
-                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_CATEGORY))
-                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_INCOME_VALUE))
-                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_COMMENT))
-                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_INCOME_DATE))
-                val income = Income(id, currency, category, value, comment, date)
+                val income = createIncomeFromCursor(it)
                 incomeList.add(income)
             }
         }
         return incomeList
     }
 
-    fun getIncomesByCurrency(currency: String): List<Income> {
+    fun getIncomesByCurrency(currency: String): List<IncomeObject> {
         Log.d(TAG, "Getting incomes for currency: $currency")
-        val incomeList = mutableListOf<Income>()
+        val incomeList = mutableListOf<IncomeObject>()
         val cursor = database.query(
             TABLE_INCOME,
             arrayOf(
@@ -101,22 +95,16 @@ class IncomeDao(context: Context) {
         )
         cursor.use {
             while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_INCOME_ID))
-                val incomeCurrency = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_CURRENCY))
-                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_CATEGORY))
-                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_INCOME_VALUE))
-                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_COMMENT))
-                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_INCOME_DATE))
-                val income = Income(id, incomeCurrency, category, value, comment, date)
+                val income = createIncomeFromCursor(it)
                 incomeList.add(income)
             }
         }
         return incomeList
     }
 
-    fun getIncomesByCurrencyAndDateRange(currency: String, startDate: Long? = null, endDate: Long? = null): List<Income> {
+    fun getIncomesByCurrencyAndDateRange(currency: String, startDate: Long? = null, endDate: Long? = null): List<IncomeObject> {
         Log.d(TAG, "Getting incomes for currency: $currency, startDate: $startDate, endDate: $endDate")
-        val incomeList = mutableListOf<Income>()
+        val incomeList = mutableListOf<IncomeObject>()
         val selection = StringBuilder("${COLUMN_INCOME_CURRENCY} = ?")
         val selectionArgs = mutableListOf(currency)
         // Build the date range selection
@@ -150,23 +138,17 @@ class IncomeDao(context: Context) {
         )
         cursor.use {
             while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_INCOME_ID))
-                val incomeCurrency = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_CURRENCY))
-                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_CATEGORY))
-                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_INCOME_VALUE))
-                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_COMMENT))
-                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_INCOME_DATE))
-                val income = Income(id, incomeCurrency, category, value, comment, date)
+                val income = createIncomeFromCursor(it)
                 incomeList.add(income)
             }
         }
         return incomeList
     }
 
-    fun getLastTenIncomes(): List<Income> {
-        val incomes = mutableListOf<Income>()
+    fun getLastTenIncomes(): List<IncomeObject> {
+        val incomes = mutableListOf<IncomeObject>()
         val cursor: Cursor = database.query(
-            TABLE_INCOME, // Use the correct table name constant
+            TABLE_INCOME,
             arrayOf(
                 COLUMN_INCOME_ID,
                 COLUMN_INCOME_CURRENCY,
@@ -175,29 +157,23 @@ class IncomeDao(context: Context) {
                 COLUMN_INCOME_COMMENT,
                 COLUMN_INCOME_DATE
             ),
-            null, // No WHERE clause to get all incomes
             null,
             null,
             null,
-            "${COLUMN_INCOME_DATE} DESC", // Order by date descending (newest first)
-            "10" // Limit the result to 10 rows
+            null,
+            "${COLUMN_INCOME_DATE} DESC",
+            "10"
         )
         cursor.use {
             while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(COLUMN_INCOME_ID))
-                val currency = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_CURRENCY))
-                val category = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_CATEGORY))
-                val value = it.getDouble(it.getColumnIndexOrThrow(COLUMN_INCOME_VALUE))
-                val comment = it.getString(it.getColumnIndexOrThrow(COLUMN_INCOME_COMMENT))
-                val date = it.getLong(it.getColumnIndexOrThrow(COLUMN_INCOME_DATE))
-                val income = Income(id, currency, category, value, comment, date)
+                val income = createIncomeFromCursor(it)
                 incomes.add(income)
             }
         }
         return incomes
     }
 
-    fun updateIncome(income: Income) {
+    fun updateIncome(income: IncomeObject) {
         Log.d(TAG, "Updating income: ${income.id}")
         val values = ContentValues().apply {
             put(COLUMN_INCOME_CURRENCY, income.currency)
@@ -215,7 +191,7 @@ class IncomeDao(context: Context) {
         Log.d(TAG, "Updated income with ID: ${income.id}, rows affected: $rowsAffected")
     }
 
-    fun deleteIncome(income: Income) {
+    fun deleteIncome(income: IncomeObject) {
         Log.d(TAG, "Deleting income: ${income.id}")
         val rowsAffected = database.delete(
             TABLE_INCOME,
@@ -225,17 +201,18 @@ class IncomeDao(context: Context) {
         Log.d(TAG, "Deleted income with ID: ${income.id}, rows affected: $rowsAffected")
     }
 
+    private fun createIncomeFromCursor(cursor: Cursor): IncomeObject {
+        return IncomeObject(
+            id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_INCOME_ID)),
+            currency = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INCOME_CURRENCY)),
+            category = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INCOME_CATEGORY)),
+            value = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_INCOME_VALUE)),
+            comment = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INCOME_COMMENT)),
+            date = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_INCOME_DATE))
+        )
+    }
+
     fun close() {
         dbHelper.close()
     }
 }
-
-data class Income(
-
-    val id: Long,
-    val currency: String,
-    val category: String,
-    val value: Double,
-    val comment: String?,
-    val date: Long
-)

@@ -39,7 +39,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
         buttonFilter = findViewById(R.id.button_filter)
         buttonClearFilter = findViewById(R.id.button_clear_filter)
 
-        selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
+        selectedCurrency = intent.getStringExtra("EXTRA_CURRENCY")
         if (selectedCurrency == null) {
             Log.e("ExpenseListActivity", "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
@@ -67,7 +67,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
         }
 
         buttonClearFilter.setOnClickListener {
-            clearFilter()
+            clearFilters()
         }
 
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNavigationView)
@@ -104,7 +104,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
         expenseAdapter.updateData(expenses)
     }
 
-    private fun clearFilter() {
+    private fun clearFilters() {
         editTextStartDate.text = null
         editTextEndDate.text = null
         loadExpenses()
@@ -155,14 +155,13 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
         expenseDao.close()
     }
 
-    override fun onEditItem(expense: Expense) {
+    override fun onEditItem(expense: ExpenseObject) {
         val intent = Intent(this, ExpenseEntryActivity::class.java)
         intent.putExtra("EXTRA_EXPENSE", expense)
         startActivity(intent)
-
     }
 
-    override fun onDeleteItem(expense: Expense) {
+    override fun onDeleteItem(expense: ExpenseObject) {
         expenseDao.deleteExpense(expense)
         loadExpenses()
         Toast.makeText(this, "Expense deleted", Toast.LENGTH_SHORT).show()

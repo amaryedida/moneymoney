@@ -77,7 +77,7 @@ class ExpenseDao(context: Context) {
         }
         return expenseList
     }
-    // Method to get expenses filtered by currency (for initial display)
+
     fun getExpensesByCurrency(currency: String): List<ExpenseObject> {
         Log.d(TAG, "Getting expenses for currency: $currency")
         val expenseList = mutableListOf<ExpenseObject>()
@@ -91,11 +91,11 @@ class ExpenseDao(context: Context) {
                 COLUMN_EXPENSE_COMMENT,
                 COLUMN_EXPENSE_DATE
             ),
-            "${COLUMN_EXPENSE_CURRENCY} = ?",  // WHERE clause: filter by currency
-            arrayOf(currency),                  // Argument for the WHERE clause
+            "${COLUMN_EXPENSE_CURRENCY} = ?",
+            arrayOf(currency),
             null,
             null,
-            "${COLUMN_EXPENSE_DATE} DESC"       // Order by date descending
+            "${COLUMN_EXPENSE_DATE} DESC"
         )
 
         Log.d(TAG, "Found ${cursor.count} expenses")
@@ -108,7 +108,6 @@ class ExpenseDao(context: Context) {
         return expenseList
     }
 
-    // Method to get expenses filtered by currency and optional date range
     fun getExpensesByCurrencyAndDateRange(currency: String, startDate: Long? = null, endDate: Long? = null): List<ExpenseObject> {
         Log.d(TAG, "Getting expenses for currency: $currency, startDate: $startDate, endDate: $endDate")
         val expenseList = mutableListOf<ExpenseObject>()
@@ -141,7 +140,7 @@ class ExpenseDao(context: Context) {
             selectionArgs.toTypedArray(),
             null,
             null,
-            "${COLUMN_EXPENSE_DATE} DESC" // Order by date descending
+            "${COLUMN_EXPENSE_DATE} DESC"
         )
 
         Log.d(TAG, "Found ${cursor.count} expenses")
@@ -154,7 +153,6 @@ class ExpenseDao(context: Context) {
         return expenseList
     }
 
-    // * New method to get the last 10 expenses *
     fun getLastTenExpenses(): List<ExpenseObject> {
         Log.d(TAG, "Getting last 10 expenses")
         val expenses = mutableListOf<ExpenseObject>()
@@ -167,12 +165,12 @@ class ExpenseDao(context: Context) {
                 COLUMN_EXPENSE_VALUE,
                 COLUMN_EXPENSE_COMMENT,
                 COLUMN_EXPENSE_DATE),
-            null, // No WHERE clause to get all expenses
             null,
             null,
             null,
-            "${COLUMN_EXPENSE_DATE} DESC", // Order by date descending (newest first)
-            "10" // Limit the result to 10 rows
+            null,
+            "${COLUMN_EXPENSE_DATE} DESC",
+            "10"
         )
 
         Log.d(TAG, "Found ${cursor.count} expenses")
@@ -224,12 +222,3 @@ class ExpenseDao(context: Context) {
         dbHelper.close()
     }
 }
-
-data class ExpenseObject(
-    val id: Long,
-    val currency: String,
-    val category: String,
-    val value: Double,
-    val comment: String?,
-    val date: Long
-)

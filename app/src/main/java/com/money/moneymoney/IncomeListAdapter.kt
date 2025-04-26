@@ -10,12 +10,12 @@ import java.util.Locale
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class IncomeListAdapter(private var incomes: List<Income>) :
+class IncomeListAdapter(private var incomes: List<IncomeObject>) :
     RecyclerView.Adapter<IncomeListAdapter.IncomeViewHolder>() {
 
     interface OnItemActionListener {
-        fun onEditItem(income: Income)
-        fun onDeleteItem(income: Income)
+        fun onEditItem(income: IncomeObject)
+        fun onDeleteItem(income: IncomeObject)
     }
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -32,7 +32,7 @@ class IncomeListAdapter(private var incomes: List<Income>) :
 
     private var listener: OnItemActionListener? = null
 
-    constructor(incomes: List<Income>, listener: OnItemActionListener) : this(incomes) {
+    constructor(incomes: List<IncomeObject>, listener: OnItemActionListener) : this(incomes) {
         this.listener = listener
     }
 
@@ -65,7 +65,7 @@ class IncomeListAdapter(private var incomes: List<Income>) :
 
     override fun getItemCount() = incomes.size
 
-    fun updateData(newIncomes: List<Income>) {
+    fun updateData(newIncomes: List<IncomeObject>) {
         incomes = newIncomes
         notifyDataSetChanged()
     }

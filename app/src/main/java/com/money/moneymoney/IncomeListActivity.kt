@@ -16,12 +16,12 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionListener { // TODO: Create IncomeListAdapter
+class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionListener {
 
-    private lateinit var recyclerViewIncomes: RecyclerView // Updated RecyclerView ID
+    private lateinit var recyclerViewIncomes: RecyclerView
     private lateinit var incomeAdapter: IncomeListAdapter
     private lateinit var incomeDao: IncomeDao
-    private lateinit var editTextStartDate: EditText // Date range filter
+    private lateinit var editTextStartDate: EditText
     private lateinit var editTextEndDate: EditText
     private lateinit var buttonFilter: Button
     private lateinit var buttonClearFilter: Button
@@ -31,7 +31,7 @@ class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionLi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_income_list) // TODO: Create activity_income_list layout
+        setContentView(R.layout.activity_income_list)
 
         recyclerViewIncomes = findViewById(R.id.recycler_view_incomes)
         editTextStartDate = findViewById(R.id.edit_text_start_date)
@@ -39,7 +39,7 @@ class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionLi
         buttonFilter = findViewById(R.id.button_filter)
         buttonClearFilter = findViewById(R.id.button_clear_filter)
 
-        selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
+        selectedCurrency = intent.getStringExtra("EXTRA_CURRENCY")
         if (selectedCurrency == null) {
             Log.e("IncomeListActivity", "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
@@ -155,13 +155,13 @@ class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionLi
         incomeDao.close()
     }
 
-    override fun onEditItem(income: Income) {
-        val intent = Intent(this, IncomeEntryActivity::class.java) // Assuming IncomeEntryActivity will be created
+    override fun onEditItem(income: IncomeObject) {
+        val intent = Intent(this, IncomeEntryActivity::class.java)
         intent.putExtra("EXTRA_INCOME", income)
         startActivity(intent)
     }
 
-    override fun onDeleteItem(income: Income) {
+    override fun onDeleteItem(income: IncomeObject) {
         incomeDao.deleteIncome(income)
         loadIncomes()
         Toast.makeText(this, "Income deleted", Toast.LENGTH_SHORT).show()

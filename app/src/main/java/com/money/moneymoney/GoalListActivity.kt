@@ -12,13 +12,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
-
-
 class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListener {
 
     private lateinit var recyclerViewGoals: RecyclerView
     private lateinit var goalAdapter: GoalListAdapter
     private lateinit var goalDao: GoalDao
+    private lateinit var investmentDao: InvestmentDao
     private lateinit var editTextStartDate: EditText
     private lateinit var editTextEndDate: EditText
     private lateinit var buttonFilter: Button
@@ -35,7 +34,6 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
         buttonClearFilter = findViewById(R.id.button_clear_filter)
 
         investmentDao = InvestmentDao(this)
-
         goalDao = GoalDao(this)
         goalAdapter = GoalListAdapter(emptyList(), this)
         recyclerViewGoals.layoutManager = LinearLayoutManager(this)
@@ -51,15 +49,16 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
     override fun onDestroy() {
         super.onDestroy()
         goalDao.close()
+        investmentDao.close()
     }
 
-    override fun onEditItem(goal: Goal) {
+    override fun onEditItem(goal: GoalObject) {
         val intent = Intent(this, GoalEntryActivity::class.java)
         intent.putExtra("EXTRA_GOAL", goal)
         startActivityForResult(intent, EDIT_GOAL_REQUEST)
     }
 
-    override fun onDeleteItem(goal: Goal) {
+    override fun onDeleteItem(goal: GoalObject) {
         goalDao.deleteGoal(goal)
         loadGoals()
         Toast.makeText(this, "Goal deleted", Toast.LENGTH_SHORT).show()
@@ -77,7 +76,7 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
             goalsWithProgress.add(GoalWithProgress(goal, amountInvested, percentageProgress, remainingAmount))
         }
 
-        goalAdapter.updateGoals(goalsWithProgress)
+        goalAdapter.updateData(goalsWithProgress)
         return goalsWithProgress
     }
 
@@ -108,7 +107,6 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
         }
     }
 
-
     private fun navigateToDashboard() {
         val intent = Intent(this, DashboardActivity::class.java)
         startActivity(intent)
@@ -123,6 +121,6 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
     }
 
     companion object {
-        const val EDIT_GOAL_REQUEST = 1001
+        private const val EDIT_GOAL_REQUEST = 1
     }
 }

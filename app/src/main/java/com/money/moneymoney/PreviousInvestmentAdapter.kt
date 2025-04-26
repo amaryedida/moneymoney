@@ -9,7 +9,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class   PreviousInvestmentAdapter(
+class PreviousInvestmentAdapter(
     private var previousInvestments: List<InvestmentObject>,
     private val goalDao: GoalDao
 ) : RecyclerView.Adapter<PreviousInvestmentAdapter.PreviousInvestmentViewHolder>() {

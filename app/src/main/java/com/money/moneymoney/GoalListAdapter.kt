@@ -2,7 +2,8 @@ package com.money.moneymoney
 
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup\nimport android.widget.ProgressBar
+import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -10,12 +11,9 @@ import androidx.recyclerview.widget.RecyclerView
 class GoalListAdapter(private var goals: List<GoalWithProgress>) :
     RecyclerView.Adapter<GoalListAdapter.GoalViewHolder>() {
 
-class GoalListAdapter(private var goals: List<Goal>) :
-    RecyclerView.Adapter<GoalListAdapter.GoalViewHolder>() {
-
     interface OnItemActionListener {
-        fun onEditItem(goal: Goal)
-        fun onDeleteItem(goal: Goal)
+        fun onEditItem(goal: GoalObject)
+        fun onDeleteItem(goal: GoalObject)
     }
 
     class GoalViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -43,18 +41,19 @@ class GoalListAdapter(private var goals: List<Goal>) :
         holder.percentageTextView.text = "${currentGoal.percentageProgress}%"
         holder.amountInvestedTextView.text = String.format("%.2f %s", currentGoal.amountInvested, goal.currency)
 
-        holder.editButton.setOnClickListener {\n            (holder.itemView.context as? OnItemActionListener)?.onEditItem(currentGoal)\n
+        holder.editButton.setOnClickListener {
+            (holder.itemView.context as? OnItemActionListener)?.onEditItem(goal)
         }
 
         holder.deleteButton.setOnClickListener {
-            (holder.itemView.context as? OnItemActionListener)?.onDeleteItem(goal)\n
+            (holder.itemView.context as? OnItemActionListener)?.onDeleteItem(goal)
         }
     }
 
     override fun getItemCount() = goals.size
 
     fun updateData(newGoals: List<GoalWithProgress>) {
-        goals = newGoals\n
+        goals = newGoals
         notifyDataSetChanged()
     }
 }

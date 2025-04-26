@@ -9,8 +9,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class PreviousExpenseAdapter(private var previousExpenses: List<Expense>) :
+class PreviousExpenseAdapter(private var previousExpenses: List<ExpenseObject>) :
     RecyclerView.Adapter<PreviousExpenseAdapter.PreviousExpenseViewHolder>() {
+
+    private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     class PreviousExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val dateTextView: TextView = itemView.findViewById(R.id.textViewPreviousExpenseDate)
@@ -27,7 +29,6 @@ class PreviousExpenseAdapter(private var previousExpenses: List<Expense>) :
 
     override fun onBindViewHolder(holder: PreviousExpenseViewHolder, position: Int) {
         val currentExpense = previousExpenses[position]
-        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         holder.dateTextView.text = sdf.format(Date(currentExpense.date))
         holder.currencyTextView.text = currentExpense.currency
         holder.valueTextView.text = String.format(Locale.getDefault(), "%.2f", currentExpense.value)
@@ -36,7 +37,7 @@ class PreviousExpenseAdapter(private var previousExpenses: List<Expense>) :
 
     override fun getItemCount() = previousExpenses.size
 
-    fun updateData(newList: List<Expense>) {
+    fun updateData(newList: List<ExpenseObject>) {
         previousExpenses = newList
         notifyDataSetChanged()
     }
