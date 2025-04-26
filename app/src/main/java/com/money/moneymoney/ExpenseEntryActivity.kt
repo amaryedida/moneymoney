@@ -39,7 +39,6 @@ class ExpenseEntryActivity : AppCompatActivity() {
     private lateinit var bottomNavigation: BottomNavigationView
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
     private var editingExpense: ExpenseObject? = null
-    private var selectedCurrency: String? = null
 
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
@@ -60,19 +59,11 @@ class ExpenseEntryActivity : AppCompatActivity() {
         // Initialize DAO
         expenseDao = ExpenseDao(this)
 
-        // Get currency from intent
-        selectedCurrency = intent.getStringExtra("EXTRA_CURRENCY")
-        if (selectedCurrency == null) {
-            Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
-
         // Setup category spinner
         setupCategorySpinner()
 
         // Check if we're editing an existing expense
-        editingExpense = intent.getParcelableExtra("EXTRA_EXPENSE")
+        editingExpense = intent.getParcelableExtra(EXTRA_EXPENSE)
         if (editingExpense != null) {
             populateFields(editingExpense!!)
         }
@@ -139,16 +130,23 @@ class ExpenseEntryActivity : AppCompatActivity() {
 
         // Set category in spinner
         val adapter = spinnerExpenseCategory.adapter as ArrayAdapter<String>
-        val position = (0 until adapter.count).firstOrNull {
-            adapter.getItem(it) == expense.category
+        val position = (0 until adapter.count).firstOrNull { 
+            adapter.getItem(it) == expense.category 
         } ?: 0
         spinnerExpenseCategory.setSelection(position)
+
+        // Set currency in spinner
+        val currencyAdapter = spinnerExpenseCurrency.adapter
+        val currencyPosition = (0 until currencyAdapter.count).firstOrNull {
+            currencyAdapter.getItem(it).toString() == expense.currency
+        } ?: 0
+        spinnerExpenseCurrency.setSelection(currencyPosition)
     }
 
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = selectedDateInMillis
-
+        
         DatePickerDialog(
             this,
             { _, year, month, day ->
@@ -176,11 +174,12 @@ class ExpenseEntryActivity : AppCompatActivity() {
         }
 
         val category = spinnerExpenseCategory.selectedItem.toString()
+        val currency = spinnerExpenseCurrency.selectedItem.toString()
         val comment = editTextExpenseComment.text.toString()
 
         val expense = ExpenseObject(
             id = editingExpense?.id ?: 0,
-            currency = selectedCurrency!!,
+            currency = currency,
             category = category,
             value = value,
             comment = if (comment.isEmpty()) null else comment,
