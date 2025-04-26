@@ -71,9 +71,10 @@ class ExpenseEntryActivity : AppCompatActivity() {
             expenseDao = ExpenseDao(this)
             Log.d(TAG, "ExpenseDao initialized")
 
-            // Setup category spinner
+            // Setup spinners
             setupCategorySpinner()
-            Log.d(TAG, "Category spinner setup complete")
+            setupCurrencySpinner()
+            Log.d(TAG, "Spinners setup complete")
 
             // Check if we're editing an existing expense
             editingExpense = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -152,6 +153,13 @@ class ExpenseEntryActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerExpenseCategory.adapter = adapter
+    }
+
+    private fun setupCurrencySpinner() {
+        val currencies = arrayOf("INR", "AED")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerExpenseCurrency.adapter = adapter
     }
 
     private fun populateFields(expense: ExpenseObject) {
