@@ -93,6 +93,7 @@ class DashboardActivity : AppCompatActivity() {
 
     private fun setupClickListeners() {
         buttonAddIncome.setOnClickListener {
+            Log.d(TAG, "Add Income button clicked")
             startActivityWithErrorHandling(
                 IncomeEntryActivity::class.java,
                 "Add Income",
@@ -101,14 +102,21 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         buttonAddExpense.setOnClickListener {
-            startActivityWithErrorHandling(
-                ExpenseEntryActivity::class.java,
-                "Add Expense",
-                "Expense Entry"
-            )
+            Log.d(TAG, "Add Expense button clicked")
+            try {
+                Log.d(TAG, "Creating intent for ExpenseEntryActivity")
+                val intent = Intent(this, ExpenseEntryActivity::class.java)
+                Log.d(TAG, "Starting ExpenseEntryActivity")
+                startActivity(intent)
+                Log.d(TAG, "Successfully launched ExpenseEntryActivity")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error launching ExpenseEntryActivity", e)
+                Toast.makeText(this, "Error opening Add Expense: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
 
         buttonAddInvestment.setOnClickListener {
+            Log.d(TAG, "Add Investment button clicked")
             startActivityWithErrorHandling(
                 InvestmentEntryActivity::class.java,
                 "Add Investment",
@@ -117,14 +125,21 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         buttonAddGoal.setOnClickListener {
-            startActivityWithErrorHandling(
-                GoalEntryActivity::class.java,
-                "Add Goal",
-                "Goal Entry"
-            )
+            Log.d(TAG, "Add Goal button clicked")
+            try {
+                Log.d(TAG, "Creating intent for GoalEntryActivity")
+                val intent = Intent(this, GoalEntryActivity::class.java)
+                Log.d(TAG, "Starting GoalEntryActivity")
+                startActivity(intent)
+                Log.d(TAG, "Successfully launched GoalEntryActivity")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error launching GoalEntryActivity", e)
+                Toast.makeText(this, "Error opening Add Goal: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
 
         buttonViewReports.setOnClickListener {
+            Log.d(TAG, "View Reports button clicked")
             startActivityWithErrorHandling(
                 CurrencySelectionActivity::class.java,
                 "View Reports",
@@ -139,8 +154,10 @@ class DashboardActivity : AppCompatActivity() {
         activityName: String
     ) {
         try {
+            Log.d(TAG, "Starting $activityName activity")
             val intent = Intent(this, activityClass)
             startActivity(intent)
+            Log.d(TAG, "Successfully started $activityName activity")
         } catch (e: Exception) {
             Log.e(TAG, "Error starting $activityName activity", e)
             Toast.makeText(this, "Error opening $actionName", Toast.LENGTH_SHORT).show()

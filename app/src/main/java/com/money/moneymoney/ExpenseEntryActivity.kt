@@ -44,34 +44,55 @@ class ExpenseEntryActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "ExpenseEntryActivity onCreate started")
         setContentView(R.layout.activity_expense_entry)
+        Log.d(TAG, "Layout set to activity_expense_entry")
 
-        editTextExpenseDate = findViewById(R.id.editTextExpenseDate)
-        editTextExpenseValue = findViewById(R.id.editTextExpenseValue)
-        spinnerExpenseCurrency = findViewById(R.id.spinnerExpenseCurrency)
-        spinnerExpenseCategory = findViewById(R.id.spinnerExpenseCategory)
-        editTextExpenseComment = findViewById(R.id.editTextExpenseComment)
-        buttonSaveExpense = findViewById(R.id.buttonSaveExpense)
-        textViewPreviousExpenses = findViewById(R.id.textViewPreviousExpenses)
-        recyclerViewPreviousExpenses = findViewById(R.id.recyclerViewPreviousExpenses)
-        bottomNavigation = findViewById(R.id.bottomNavigationView)
-
-        // Initialize DAO
-        expenseDao = ExpenseDao(this)
-
-        // Setup category spinner
-        setupCategorySpinner()
-
-        // Check if we're editing an existing expense
-        editingExpense = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra(EXTRA_EXPENSE, ExpenseObject::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra(EXTRA_EXPENSE)
+        try {
+            editTextExpenseDate = findViewById(R.id.editTextExpenseDate)
+            editTextExpenseValue = findViewById(R.id.editTextExpenseValue)
+            spinnerExpenseCurrency = findViewById(R.id.spinnerExpenseCurrency)
+            spinnerExpenseCategory = findViewById(R.id.spinnerExpenseCategory)
+            editTextExpenseComment = findViewById(R.id.editTextExpenseComment)
+            buttonSaveExpense = findViewById(R.id.buttonSaveExpense)
+            textViewPreviousExpenses = findViewById(R.id.textViewPreviousExpenses)
+            recyclerViewPreviousExpenses = findViewById(R.id.recyclerViewPreviousExpenses)
+            bottomNavigation = findViewById(R.id.bottomNavigationView)
+            Log.d(TAG, "All views found and initialized")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error finding views", e)
+            Toast.makeText(this, "Error initializing views: ${e.message}", Toast.LENGTH_LONG).show()
+            finish()
+            return
         }
 
-        if (editingExpense != null) {
-            populateFields(editingExpense!!)
+        try {
+            // Initialize DAO
+            expenseDao = ExpenseDao(this)
+            Log.d(TAG, "ExpenseDao initialized")
+
+            // Setup category spinner
+            setupCategorySpinner()
+            Log.d(TAG, "Category spinner setup complete")
+
+            // Check if we're editing an existing expense
+            editingExpense = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(EXTRA_EXPENSE, ExpenseObject::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(EXTRA_EXPENSE)
+            }
+            Log.d(TAG, "Editing expense check complete: ${editingExpense != null}")
+
+            if (editingExpense != null) {
+                populateFields(editingExpense!!)
+                Log.d(TAG, "Fields populated with existing expense data")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in initialization", e)
+            Toast.makeText(this, "Error in initialization: ${e.message}", Toast.LENGTH_LONG).show()
+            finish()
+            return
         }
 
         // Setup date button
@@ -79,11 +100,13 @@ class ExpenseEntryActivity : AppCompatActivity() {
         editTextExpenseDate.setOnClickListener {
             showDatePicker()
         }
+        Log.d(TAG, "Date picker setup complete")
 
         // Setup save button
         buttonSaveExpense.setOnClickListener {
             saveExpense()
         }
+        Log.d(TAG, "Save button setup complete")
 
         // Set up bottom navigation
         bottomNavigation.setOnItemSelectedListener { item ->
@@ -99,6 +122,7 @@ class ExpenseEntryActivity : AppCompatActivity() {
                 else -> false
             }
         }
+        Log.d(TAG, "Bottom navigation setup complete")
 
         // Set the current item to home
         bottomNavigation.selectedItemId = R.id.menu_home
@@ -107,9 +131,11 @@ class ExpenseEntryActivity : AppCompatActivity() {
         recyclerViewPreviousExpenses.layoutManager = LinearLayoutManager(this)
         previousExpensesAdapter = PreviousExpenseAdapter(emptyList())
         recyclerViewPreviousExpenses.adapter = previousExpensesAdapter
+        Log.d(TAG, "RecyclerView setup complete")
 
         loadPreviousExpenses()
         updateDateEditText()
+        Log.d(TAG, "ExpenseEntryActivity onCreate completed successfully")
     }
 
     private fun setupCategorySpinner() {
