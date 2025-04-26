@@ -59,6 +59,9 @@ class ExpenseEntryActivity : AppCompatActivity() {
         // Initialize DAO
         expenseDao = ExpenseDao(this)
 
+        // Setup category spinner
+        setupCategorySpinner()
+
         // Check if we're editing an existing expense
         editingExpense = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(EXTRA_EXPENSE, ExpenseObject::class.java)
