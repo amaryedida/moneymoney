@@ -8,7 +8,10 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class GoalListAdapter(private var goals: List<GoalWithProgress>) :
+class GoalListAdapter(
+    private var goals: List<GoalWithProgress>,
+    private val listener: OnItemActionListener
+) :
     RecyclerView.Adapter<GoalListAdapter.GoalViewHolder>() {
 
     interface OnItemActionListener {
@@ -42,11 +45,11 @@ class GoalListAdapter(private var goals: List<GoalWithProgress>) :
         holder.amountInvestedTextView.text = String.format("%.2f %s", currentGoal.amountInvested, goal.currency)
 
         holder.editButton.setOnClickListener {
-            (holder.itemView.context as? OnItemActionListener)?.onEditItem(goal)
+            listener.onEditItem(goal)
         }
 
         holder.deleteButton.setOnClickListener {
-            (holder.itemView.context as? OnItemActionListener)?.onDeleteItem(goal)
+            listener.onDeleteItem(goal)
         }
     }
 

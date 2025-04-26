@@ -254,10 +254,3 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 }
-
-data class GoalWithProgress(
-    val goal: Goal,
-    val amountInvested: Double,
-    val percentageProgress: Int,
-    val remainingAmount: Double
-)

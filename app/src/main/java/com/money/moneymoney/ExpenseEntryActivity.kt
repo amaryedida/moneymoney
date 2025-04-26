@@ -14,6 +14,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
+import java.text.SimpleDateFormat
+import java.util.Date
+import android.widget.ArrayAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
 
 class ExpenseEntryActivity : AppCompatActivity() {
 
@@ -34,8 +38,11 @@ class ExpenseEntryActivity : AppCompatActivity() {
     private lateinit var previousExpensesAdapter: PreviousExpenseAdapter
     private lateinit var bottomNavigation: BottomNavigationView
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
+    private var editingExpense: ExpenseObject? = null
+    private var selectedCurrency: String? = null
 
-    private var expenseId: Long? = null // To store the ID if editing an expense
+    private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_expense_entry)
@@ -50,26 +57,36 @@ class ExpenseEntryActivity : AppCompatActivity() {
         recyclerViewPreviousExpenses = findViewById(R.id.recyclerViewPreviousExpenses)
         bottomNavigation = findViewById(R.id.bottomNavigationView)
 
-        // Check if we are editing an existing expense
-        val expenseToEdit = intent.getParcelableExtra<Expense>(EXTRA_EXPENSE)
-        if (expenseToEdit != null) {
-            expenseId = expenseToEdit.id
-            supportActionBar?.title = "Edit Expense"  // Change activity title
+        // Initialize DAO
+        expenseDao = ExpenseDao(this)
 
-            // Pre-populate UI fields with expense data
-            editTextExpenseDate.setText(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(expenseToEdit.date)))
-            editTextExpenseValue.setText(String.format(Locale.getDefault(), "%.2f", expenseToEdit.value))
-
-            // Find the position of the category and currency in the spinners
-            val categoryPosition = (spinnerExpenseCategory.adapter as? ArrayAdapter<String>)?.getPosition(expenseToEdit.category) ?: 0
-            val currencyPosition = (spinnerExpenseCurrency.adapter as? ArrayAdapter<String>)?.getPosition(expenseToEdit.currency) ?: 0
-
-            spinnerExpenseCategory.setSelection(categoryPosition)
-            spinnerExpenseCurrency.setSelection(currencyPosition)
-            editTextExpenseComment.setText(expenseToEdit.comment)
+        // Get currency from intent
+        selectedCurrency = intent.getStringExtra("EXTRA_CURRENCY")
+        if (selectedCurrency == null) {
+            Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
 
-        expenseDao = ExpenseDao(this)
+        // Setup category spinner
+        setupCategorySpinner()
+
+        // Check if we're editing an existing expense
+        editingExpense = intent.getParcelableExtra("EXTRA_EXPENSE")
+        if (editingExpense != null) {
+            populateFields(editingExpense!!)
+        }
+
+        // Setup date button
+        editTextExpenseDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
+        editTextExpenseDate.setOnClickListener {
+            showDatePicker()
+        }
+
+        // Setup save button
+        buttonSaveExpense.setOnClickListener {
+            saveExpense()
+        }
 
         // Set up bottom navigation
         bottomNavigation.setOnItemSelectedListener { item ->
@@ -89,14 +106,6 @@ class ExpenseEntryActivity : AppCompatActivity() {
         // Set the current item to home
         bottomNavigation.selectedItemId = R.id.menu_home
 
-        editTextExpenseDate.setOnClickListener {
-            showDatePickerDialog()
-        }
-
-        buttonSaveExpense.setOnClickListener {
-            saveExpenseData()
-        }
-
         // Set up RecyclerView for previous expenses
         recyclerViewPreviousExpenses.layoutManager = LinearLayoutManager(this)
         previousExpensesAdapter = PreviousExpenseAdapter(emptyList())
@@ -106,24 +115,90 @@ class ExpenseEntryActivity : AppCompatActivity() {
         updateDateEditText()
     }
 
-    private fun showDatePickerDialog() {
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
-
-        val datePickerDialog = DatePickerDialog(
-            this,
-            { _, yearSelected, monthOfYear, dayOfMonthSelected ->
-                calendar.set(yearSelected, monthOfYear, dayOfMonthSelected)
-                selectedDateInMillis = calendar.timeInMillis
-                updateDateEditText()
-            },
-            year,
-            month,
-            dayOfMonth
+    private fun setupCategorySpinner() {
+        val categories = arrayOf(
+            "Food",
+            "Transportation",
+            "Entertainment",
+            "Shopping",
+            "Bills",
+            "Healthcare",
+            "Education",
+            "Other"
         )
-        datePickerDialog.show()
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerExpenseCategory.adapter = adapter
+    }
+
+    private fun populateFields(expense: ExpenseObject) {
+        editTextExpenseValue.setText(String.format(Locale.getDefault(), "%.2f", expense.value))
+        editTextExpenseComment.setText(expense.comment)
+        selectedDateInMillis = expense.date
+        editTextExpenseDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
+
+        // Set category in spinner
+        val adapter = spinnerExpenseCategory.adapter as ArrayAdapter<String>
+        val position = (0 until adapter.count).firstOrNull {
+            adapter.getItem(it) == expense.category
+        } ?: 0
+        spinnerExpenseCategory.setSelection(position)
+    }
+
+    private fun showDatePicker() {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = selectedDateInMillis
+
+        DatePickerDialog(
+            this,
+            { _, year, month, day ->
+                calendar.set(year, month, day)
+                selectedDateInMillis = calendar.timeInMillis
+                editTextExpenseDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    private fun saveExpense() {
+        val valueStr = editTextExpenseValue.text.toString()
+        if (valueStr.isEmpty()) {
+            Toast.makeText(this, "Please enter a value", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val value = valueStr.toDoubleOrNull()
+        if (value == null) {
+            Toast.makeText(this, "Please enter a valid number", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val category = spinnerExpenseCategory.selectedItem.toString()
+        val comment = editTextExpenseComment.text.toString()
+
+        val expense = ExpenseObject(
+            id = editingExpense?.id ?: 0,
+            currency = selectedCurrency!!,
+            category = category,
+            value = value,
+            comment = if (comment.isEmpty()) null else comment,
+            date = selectedDateInMillis
+        )
+
+        if (editingExpense == null) {
+            expenseDao.addExpense(expense)
+        } else {
+            expenseDao.updateExpense(expense)
+        }
+
+        finish()
+    }
+
+    private fun loadPreviousExpenses() {
+        val lastTenExpenses = expenseDao.getLastTenExpenses()
+        previousExpensesAdapter.updateData(lastTenExpenses)
     }
 
     private fun updateDateEditText() {
@@ -133,33 +208,6 @@ class ExpenseEntryActivity : AppCompatActivity() {
             calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH)
         )
         editTextExpenseDate.setText(formattedDate)
-    }
-
-    private fun saveExpenseData() {
-        val currency = spinnerExpenseCurrency.selectedItem.toString()
-        val category = spinnerExpenseCategory.selectedItem.toString()
-        val valueStr = editTextExpenseValue.text.toString()
-        val comment = editTextExpenseComment.text.toString()
-        if (valueStr.isNotEmpty()) {
-            val value = valueStr.toDouble()
-            val insertedRowId = expenseDao.addExpense(currency, category, value, comment, selectedDateInMillis)
-
-            if (insertedRowId > 0) {
-                Toast.makeText(this, "Expense data saved successfully", Toast.LENGTH_SHORT).show()
-                editTextExpenseValue.text.clear()
-                editTextExpenseComment.text.clear()
-                loadPreviousExpenses()
-            } else {
-                Toast.makeText(this, "Failed to save expense data", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(this, "Please enter the expense value", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun loadPreviousExpenses() {
-        val lastTenExpenses = expenseDao.getLastTenExpenses()
-        previousExpensesAdapter.updateData(lastTenExpenses)
     }
 
     override fun onDestroy() {

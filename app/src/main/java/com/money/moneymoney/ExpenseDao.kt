@@ -19,14 +19,14 @@ class ExpenseDao(context: Context) {
     private val database: SQLiteDatabase = dbHelper.writableDatabase
     private val TAG = "ExpenseDao"
 
-    fun addExpense(currency: String, category: String, value: Double, comment: String?, date: Long): Long {
-        Log.d(TAG, "Adding expense: $currency, $category, $value, $comment, $date")
+    fun addExpense(expense: ExpenseObject): Long {
+        Log.d(TAG, "Adding expense: ${expense.currency}, ${expense.category}, ${expense.value}, ${expense.comment}, ${expense.date}")
         val values = ContentValues().apply {
-            put(COLUMN_EXPENSE_CURRENCY, currency)
-            put(COLUMN_EXPENSE_CATEGORY, category)
-            put(COLUMN_EXPENSE_VALUE, value)
-            put(COLUMN_EXPENSE_COMMENT, comment)
-            put(COLUMN_EXPENSE_DATE, date)
+            put(COLUMN_EXPENSE_CURRENCY, expense.currency)
+            put(COLUMN_EXPENSE_CATEGORY, expense.category)
+            put(COLUMN_EXPENSE_VALUE, expense.value)
+            put(COLUMN_EXPENSE_COMMENT, expense.comment)
+            put(COLUMN_EXPENSE_DATE, expense.date)
         }
         val id = database.insert(TABLE_EXPENSES, null, values)
         Log.d(TAG, "Added expense with ID: $id")
