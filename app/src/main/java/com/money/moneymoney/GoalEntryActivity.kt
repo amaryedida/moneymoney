@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
+import android.widget.ArrayAdapter
 
 class GoalEntryActivity : AppCompatActivity() {
 
@@ -50,6 +51,9 @@ class GoalEntryActivity : AppCompatActivity() {
         spinnerGoalCurrency = findViewById(R.id.spinnerGoalCurrency)
         buttonSaveGoal = findViewById(R.id.buttonSaveGoal)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
+
+        // Setup currency spinner
+        setupCurrencySpinner()
 
         goalDao = GoalDao(this)
         goalAdapter = GoalAdapter(mutableListOf())
@@ -157,6 +161,13 @@ class GoalEntryActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Please enter goal name, target amount, and creation date", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun setupCurrencySpinner() {
+        val currencies = arrayOf("INR", "AED")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerGoalCurrency.adapter = adapter
     }
 
     override fun onDestroy() {
