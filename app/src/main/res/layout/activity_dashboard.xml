@@ -54,12 +54,6 @@
                         android:layout_height="wrap_content"
                         android:text="Expenses: ₹0.00" />
                     <TextView
-                        android:id="@+id/textViewNetIncomeINR"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Net Income: ₹0.00"
-                        android:textStyle="bold" />
-                    <TextView
                         android:id="@+id/textViewInvestmentsINR"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -86,12 +80,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Expenses: د.إ 0.00" />
-                    <TextView
-                        android:id="@+id/textViewNetIncomeAED"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Net Income: د.إ 0.00"
-                        android:textStyle="bold" />
                     <TextView
                         android:id="@+id/textViewInvestmentsAED"
                         android:layout_width="wrap_content"

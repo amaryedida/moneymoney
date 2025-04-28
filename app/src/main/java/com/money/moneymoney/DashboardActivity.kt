@@ -2,22 +2,27 @@ package com.money.moneymoney
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 
 class DashboardActivity : AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "DashboardActivity"
+    }
+
     private lateinit var textViewIncomeINR: TextView
     private lateinit var textViewExpensesINR: TextView
-    private lateinit var textViewNetIncomeINR: TextView
     private lateinit var textViewInvestmentsINR: TextView
     private lateinit var textViewIncomeAED: TextView
     private lateinit var textViewExpensesAED: TextView
-    private lateinit var textViewNetIncomeAED: TextView
     private lateinit var textViewInvestmentsAED: TextView
 
     private lateinit var recyclerViewGoalProgress: RecyclerView
@@ -32,68 +37,144 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var buttonAddInvestment: Button
     private lateinit var buttonAddGoal: Button
     private lateinit var buttonViewReports: Button
+    private lateinit var bottomNavigation: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
-        // Initialize TextViews for Financial Summary
+        initializeViews()
+        setupRecyclerView()
+        initializeDAOs()
+        setupBottomNavigation()
+        setupClickListeners()
+        loadDashboardData()
+    }
+
+    private fun initializeViews() {
         textViewIncomeINR = findViewById(R.id.textViewIncomeINR)
         textViewExpensesINR = findViewById(R.id.textViewExpensesINR)
-        textViewNetIncomeINR = findViewById(R.id.textViewNetIncomeINR)
         textViewInvestmentsINR = findViewById(R.id.textViewInvestmentsINR)
         textViewIncomeAED = findViewById(R.id.textViewIncomeAED)
         textViewExpensesAED = findViewById(R.id.textViewExpensesAED)
-        textViewNetIncomeAED = findViewById(R.id.textViewNetIncomeAED)
         textViewInvestmentsAED = findViewById(R.id.textViewInvestmentsAED)
 
-        // Initialize RecyclerView for Goal Progress
-        recyclerViewGoalProgress = findViewById(R.id.recyclerViewGoalProgress)
-        recyclerViewGoalProgress.layoutManager = LinearLayoutManager(this)
-        goalProgressAdapter = GoalProgressAdapter(emptyList()) // Initialize with an empty list
-        recyclerViewGoalProgress.adapter = goalProgressAdapter
-
-        // Initialize DAOs
-        goalDao = GoalDao(this)
-        investmentDao = InvestmentDao(this)
-        incomeDao = IncomeDao(this)
-        expenseDao = ExpenseDao(this)
-
-        // Initialize Quick Action Buttons
         buttonAddIncome = findViewById(R.id.buttonAddIncome)
         buttonAddExpense = findViewById(R.id.buttonAddExpense)
         buttonAddInvestment = findViewById(R.id.buttonAddInvestment)
         buttonAddGoal = findViewById(R.id.buttonAddGoal)
         buttonViewReports = findViewById(R.id.buttonViewReports)
+        bottomNavigation = findViewById(R.id.bottomNavigationView)
+    }
 
-        // Set OnClickListeners for Quick Action Buttons
+    private fun setupRecyclerView() {
+        recyclerViewGoalProgress = findViewById(R.id.recyclerViewGoalProgress)
+        recyclerViewGoalProgress.layoutManager = LinearLayoutManager(this)
+        goalProgressAdapter = GoalProgressAdapter(emptyList())
+        recyclerViewGoalProgress.adapter = goalProgressAdapter
+    }
+
+    private fun initializeDAOs() {
+        goalDao = GoalDao(this)
+        investmentDao = InvestmentDao(this)
+        incomeDao = IncomeDao(this)
+        expenseDao = ExpenseDao(this)
+    }
+
+    private fun setupBottomNavigation() {
+        bottomNavigation.setOnItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.menu_home -> true // Already on home screen
+                else -> false
+            }
+        }
+        bottomNavigation.selectedItemId = R.id.menu_home
+    }
+
+    private fun setupClickListeners() {
         buttonAddIncome.setOnClickListener {
-            startActivity(Intent(this, IncomeEntryActivity::class.java))
-        }
-        buttonAddExpense.setOnClickListener {
-            startActivity(Intent(this, ExpenseEntryActivity::class.java))
-        }
-        buttonAddInvestment.setOnClickListener {
-            startActivity(Intent(this, InvestmentEntryActivity::class.java))
-        }
-        buttonAddGoal.setOnClickListener {
-            startActivity(Intent(this, GoalEntryActivity::class.java))
-        }
-        buttonViewReports.setOnClickListener {
-            // Implement navigation to reports activity
-            // startActivity(Intent(this, ReportsActivity::class.java))
+            Log.d(TAG, "Add Income button clicked")
+            startActivityWithErrorHandling(
+                IncomeEntryActivity::class.java,
+                "Add Income",
+                "Income Entry"
+            )
         }
 
-        // Load data for the dashboard
+        buttonAddExpense.setOnClickListener {
+            Log.d(TAG, "Add Expense button clicked")
+            try {
+                Log.d(TAG, "Creating intent for ExpenseEntryActivity")
+                val intent = Intent(this, ExpenseEntryActivity::class.java)
+                Log.d(TAG, "Starting ExpenseEntryActivity")
+                startActivity(intent)
+                Log.d(TAG, "Successfully launched ExpenseEntryActivity")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error launching ExpenseEntryActivity", e)
+                Toast.makeText(this, "Error opening Add Expense: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+
+        buttonAddInvestment.setOnClickListener {
+            Log.d(TAG, "Add Investment button clicked")
+            startActivityWithErrorHandling(
+                InvestmentEntryActivity::class.java,
+                "Add Investment",
+                "Investment Entry"
+            )
+        }
+
+        buttonAddGoal.setOnClickListener {
+            Log.d(TAG, "Add Goal button clicked")
+            try {
+                Log.d(TAG, "Creating intent for GoalEntryActivity")
+                val intent = Intent(this, GoalEntryActivity::class.java)
+                Log.d(TAG, "Starting GoalEntryActivity")
+                startActivity(intent)
+                Log.d(TAG, "Successfully launched GoalEntryActivity")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error launching GoalEntryActivity", e)
+                Toast.makeText(this, "Error opening Add Goal: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+
+        buttonViewReports.setOnClickListener {
+            Log.d(TAG, "View Reports button clicked")
+            startActivityWithErrorHandling(
+                CurrencySelectionActivity::class.java,
+                "View Reports",
+                "Currency Selection"
+            )
+        }
+    }
+
+    private fun startActivityWithErrorHandling(
+        activityClass: Class<*>,
+        actionName: String,
+        activityName: String
+    ) {
+        try {
+            Log.d(TAG, "Starting $activityName activity")
+            val intent = Intent(this, activityClass)
+            startActivity(intent)
+            Log.d(TAG, "Successfully started $activityName activity")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error starting $activityName activity", e)
+            Toast.makeText(this, "Error opening $actionName", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadDashboardData() {
         loadFinancialSummary()
         loadGoalProgress()
     }
+
     private fun loadFinancialSummary() {
         val calendar = Calendar.getInstance()
         val currentYear = calendar.get(Calendar.YEAR)
         val currentMonth = calendar.get(Calendar.MONTH)
 
-        val incomeList = incomeDao.getIncomeForMonth(currentYear, currentMonth)
+        val incomeList = incomeDao.getIncomesForMonth(currentYear, currentMonth)
         val expenseList = expenseDao.getExpensesForMonth(currentYear, currentMonth)
         val investmentList = investmentDao.getInvestmentsForMonth(currentYear, currentMonth)
 
@@ -125,14 +206,22 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
 
+        updateFinancialSummaryViews(
+            totalIncomeINR, totalExpensesINR, totalInvestmentsINR,
+            totalIncomeAED, totalExpensesAED, totalInvestmentsAED
+        )
+    }
+
+    private fun updateFinancialSummaryViews(
+        totalIncomeINR: Double, totalExpensesINR: Double, totalInvestmentsINR: Double,
+        totalIncomeAED: Double, totalExpensesAED: Double, totalInvestmentsAED: Double
+    ) {
         textViewIncomeINR.text = "Income: ₹${String.format("%.2f", totalIncomeINR)}"
         textViewExpensesINR.text = "Expenses: ₹${String.format("%.2f", totalExpensesINR)}"
-        textViewNetIncomeINR.text = "Net Income: ₹${String.format("%.2f", totalIncomeINR - totalExpensesINR)}"
         textViewInvestmentsINR.text = "Investments: ₹${String.format("%.2f", totalInvestmentsINR)}"
 
         textViewIncomeAED.text = "Income: د.إ ${String.format("%.2f", totalIncomeAED)}"
         textViewExpensesAED.text = "Expenses: د.إ ${String.format("%.2f", totalExpensesAED)}"
-        textViewNetIncomeAED.text = "Net Income: د.إ ${String.format("%.2f", totalIncomeAED - totalExpensesAED)}"
         textViewInvestmentsAED.text = "Investments: د.إ ${String.format("%.2f", totalInvestmentsAED)}"
     }
 
@@ -143,10 +232,21 @@ class DashboardActivity : AppCompatActivity() {
         for (goal in activeGoals) {
             val investmentsForGoal = investmentDao.getInvestmentsByGoalId(goal.id)
             val amountInvested = investmentsForGoal.sumOf { it.value }
-            val percentageProgress = if (goal.targetValue > 0) (amountInvested / goal.targetValue * 100).toInt() else 0
+            val percentageProgress = if (goal.targetValue > 0) {
+                (amountInvested / goal.targetValue * 100).toInt()
+            } else {
+                0
+            }
             val remainingAmount = goal.targetValue - amountInvested
 
-            goalProgressList.add(GoalWithProgress(goal, amountInvested, percentageProgress, remainingAmount))
+            goalProgressList.add(
+                GoalWithProgress(
+                    goal = goal,
+                    amountInvested = amountInvested,
+                    percentageProgress = percentageProgress,
+                    remainingAmount = remainingAmount
+                )
+            )
         }
 
         goalProgressAdapter.updateGoals(goalProgressList)
@@ -154,16 +254,13 @@ class DashboardActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        goalDao.close()
-        investmentDao.close()
-        incomeDao.close()
-        expenseDao.close()
+        try {
+            goalDao.close()
+            investmentDao.close()
+            incomeDao.close()
+            expenseDao.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing database connections", e)
+        }
     }
 }
-
-data class GoalWithProgress(
-    val goal: Goal,
-    val amountInvested: Double,
-    val percentageProgress: Int,
-    val remainingAmount: Double
-)

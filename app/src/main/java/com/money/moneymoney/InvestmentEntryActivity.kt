@@ -3,6 +3,7 @@ package com.money.moneymoney
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -17,6 +18,10 @@ import java.util.Calendar
 import java.util.Locale
 
 class InvestmentEntryActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "InvestmentEntryActivity"
+    }
 
     private lateinit var editTextInvestmentDate: EditText
     private lateinit var editTextInvestmentValue: EditText
@@ -37,6 +42,7 @@ class InvestmentEntryActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate() called")
         setContentView(R.layout.activity_investment_entry)
 
         editTextInvestmentDate = findViewById(R.id.editTextInvestmentDate)
@@ -55,7 +61,7 @@ class InvestmentEntryActivity : AppCompatActivity() {
 
         // Set up RecyclerView
         recyclerViewPreviousInvestments.layoutManager = LinearLayoutManager(this)
-        previousInvestmentAdapter = PreviousInvestmentAdapter(emptyList())
+        previousInvestmentAdapter = PreviousInvestmentAdapter(emptyList(), goalDao)
         recyclerViewPreviousInvestments.adapter = previousInvestmentAdapter
 
         loadGoals() // Load goals from the database
@@ -71,15 +77,15 @@ class InvestmentEntryActivity : AppCompatActivity() {
 
         bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
-                R.id.navigation_home -> {
+                R.id.menu_home -> {
+                    Log.d(TAG, "Home navigation selected, returning to DashboardActivity")
                     startActivity(Intent(this, DashboardActivity::class.java))
-                    finish()
                     true
                 }
                 else -> false
             }
         }
-        bottomNavigationView.selectedItemId = R.id.navigation_home
+        // Don't set selectedItemId to avoid automatic navigation
 
         updateDateEditText()
     }

@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.money.moneymoney">
 
     <application
         android:allowBackup="true"
@@ -11,32 +13,109 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MoneyMoney"
         tools:targetApi="31">
-        <activity
-            android:name=".IncomeEntryActivity"
-            android:exported="false"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.MoneyMoney" />
-        <activity
-            android:name=".ExpenseEntryActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MoneyMoney" />
-        <activity
-            android:name=".InvestmentEntryActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MoneyMoney" />
-        <activity
-            android:name=".GoalEntryActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MoneyMoney" />
+        
         <activity
             android:name=".DashboardActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.MoneyMoney">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".CurrencySelectionActivity"
+            android:exported="false"
+            android:label="Select Currency"
+            android:parentActivityName=".DashboardActivity">
+        </activity>
+
+        <activity
+            android:name=".ExpenseListActivity"
+            android:exported="false"
+            android:label="Expense List"
+            android:parentActivityName=".DashboardActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+        
+        <activity
+            android:name=".IncomeListActivity"
+            android:exported="false"
+            android:label="Income List"
+            android:parentActivityName=".DashboardActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+
+        <activity
+            android:name=".InvestmentListActivity"
+            android:exported="false"
+            android:label="Investment List"
+            android:parentActivityName=".DashboardActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity"/>
+        </activity>
+
+
+        <activity
+            android:name=".ExpenseEntryActivity"
+            android:exported="false"
+            android:label="Add Expense"
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+
+        <activity
+            android:name=".GoalEntryActivity"
+            android:exported="false"
+            android:label="Add Goal"
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+
+        <activity
+            android:name=".IncomeEntryActivity"
+            android:exported="false"
+            android:label="Add Income"
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+
+        <activity
+            android:name=".InvestmentEntryActivity"
+            android:exported="false"
+            android:label="Add Investment"
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+
+        <activity
+            android:name=".GoalListActivity"
+            android:exported="false"
+            android:label="Goal List"
+            android:parentActivityName=".DashboardActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".DashboardActivity" />
+        </activity>
+
     </application>
 
 </manifest>

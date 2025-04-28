@@ -9,8 +9,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class PreviousIncomeAdapter(private var previousIncomes: List<Income>) :
+class PreviousIncomeAdapter(private var previousIncomes: List<IncomeObject>) :
     RecyclerView.Adapter<PreviousIncomeAdapter.PreviousIncomeViewHolder>() {
+
+    private val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     class PreviousIncomeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val dateTextView: TextView = itemView.findViewById(R.id.textViewPreviousIncomeDate)
@@ -27,7 +29,6 @@ class PreviousIncomeAdapter(private var previousIncomes: List<Income>) :
 
     override fun onBindViewHolder(holder: PreviousIncomeViewHolder, position: Int) {
         val currentIncome = previousIncomes[position]
-        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         holder.dateTextView.text = sdf.format(Date(currentIncome.date))
         holder.currencyTextView.text = currentIncome.currency
         holder.valueTextView.text = String.format(Locale.getDefault(), "%.2f", currentIncome.value)
@@ -36,7 +37,7 @@ class PreviousIncomeAdapter(private var previousIncomes: List<Income>) :
 
     override fun getItemCount() = previousIncomes.size
 
-    fun updateData(newList: List<Income>) {
+    fun updateData(newList: List<IncomeObject>) {
         previousIncomes = newList
         notifyDataSetChanged()
     }

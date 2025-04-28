@@ -7,6 +7,7 @@ import android.util.Log
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
+        private const val TAG = "DatabaseHelper"
         const val DATABASE_NAME = "MoneyMoney.db"
         const val DATABASE_VERSION = 2 // Ensured version is incremented
 
@@ -50,7 +51,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
-        Log.d("DatabaseHelper", "onCreate() called") // Added log
+        Log.d(TAG, "onCreate() called")
 
         val createIncomeTable = "CREATE TABLE $TABLE_INCOME (" +
                 "$COLUMN_INCOME_ID INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -86,17 +87,18 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "$COLUMN_GOAL_STATUS TEXT NOT NULL DEFAULT 'Active'," +
                 "$COLUMN_GOAL_COMPLETION_DATE INTEGER);"
 
-        Log.d("DatabaseHelper", "Executing SQL: $createIncomeTable") // Added log
+        Log.d(TAG, "Executing SQL: $createIncomeTable")
         db?.execSQL(createIncomeTable)
-        Log.d("DatabaseHelper", "Executing SQL: $createExpensesTable") // Added log
+        Log.d(TAG, "Executing SQL: $createExpensesTable")
         db?.execSQL(createExpensesTable)
-        Log.d("DatabaseHelper", "Executing SQL: $createInvestmentsTable") // Added log
+        Log.d(TAG, "Executing SQL: $createInvestmentsTable")
         db?.execSQL(createInvestmentsTable)
-        Log.d("DatabaseHelper", "Executing SQL: $createGoalsTable") // Added log
+        Log.d(TAG, "Executing SQL: $createGoalsTable")
         db?.execSQL(createGoalsTable)
     }
+
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        Log.d("DatabaseHelper", "onUpgrade() called from version $oldVersion to $newVersion") // Added log
+        Log.d(TAG, "onUpgrade() called from version $oldVersion to $newVersion")
         db?.execSQL("DROP TABLE IF EXISTS $TABLE_INCOME")
         db?.execSQL("DROP TABLE IF EXISTS $TABLE_EXPENSES")
         db?.execSQL("DROP TABLE IF EXISTS $TABLE_INVESTMENTS")

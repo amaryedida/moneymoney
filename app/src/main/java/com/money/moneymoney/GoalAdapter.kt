@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class GoalAdapter(private val goals: MutableList<Goal>) : RecyclerView.Adapter<GoalAdapter.GoalViewHolder>() {
+class GoalAdapter(private val goals: MutableList<GoalObject>) : RecyclerView.Adapter<GoalAdapter.GoalViewHolder>() {
 
     class GoalViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.textViewGoalName)
@@ -31,7 +31,7 @@ class GoalAdapter(private val goals: MutableList<Goal>) : RecyclerView.Adapter<G
         return goals.size
     }
 
-    fun updateGoals(newGoals: List<Goal>) {
+    fun updateGoals(newGoals: List<GoalObject>) {
         goals.clear()
         goals.addAll(newGoals)
         notifyDataSetChanged() // Tell the RecyclerView the data has changed
