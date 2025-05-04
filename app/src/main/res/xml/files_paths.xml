@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <cache-path name="cache" path="." />
-    <!-- If you want to allow sharing from other directories, add more paths here -->
-</paths>
