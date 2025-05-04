@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.util.*
 
 class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListener {
 
@@ -49,6 +50,19 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
         recyclerViewGoals.adapter = goalAdapter
 
         loadGoals()
+
+        buttonFilter.setOnClickListener {
+            filterGoals()
+        }
+        buttonClearFilter.setOnClickListener {
+            clearFilter()
+        }
+        editTextStartDate.setOnClickListener {
+            showDatePickerDialog(editTextStartDate)
+        }
+        editTextEndDate.setOnClickListener {
+            showDatePickerDialog(editTextEndDate)
+        }
     }
 
     private fun loadGoals() {
@@ -89,19 +103,68 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
         return goalsWithProgress
     }
 
-    /*
     private fun showDatePickerDialog(editText: EditText) {
-        // Implement date picker if needed for filtering (though goals might not be directly filterable by date)
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val datePickerDialog = DatePickerDialog(
+            this,
+            { _, selectedYear, selectedMonth, selectedDay ->
+                calendar.set(selectedYear, selectedMonth, selectedDay)
+                val selectedDate = calendar.time
+                val dateFormatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                editText.setText(dateFormatter.format(selectedDate))
+            },
+            year,
+            month,
+            day
+        )
+        datePickerDialog.show()
     }
 
     private fun filterGoals() {
-        // Implement filtering logic if needed
+        val startDate = getDateFromEditText(editTextStartDate)
+        val endDate = getDateFromEditText(editTextEndDate)
+        if (startDate != null && endDate != null && startDate.after(endDate)) {
+            Toast.makeText(this, "Start date cannot be after end date", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val goals = goalDao.getActiveGoalsByCreationDateRange(startDate?.time, endDate?.time)
+        updateGoalListWithProgress(goals)
     }
 
     private fun clearFilter() {
-        // Implement clear filter logic if needed
+        editTextStartDate.text.clear()
+        editTextEndDate.text.clear()
+        loadGoals()
     }
-    */
+
+    private fun getDateFromEditText(editText: EditText): java.util.Date? {
+        val dateString = editText.text.toString()
+        return if (dateString.isNotEmpty()) {
+            try {
+                java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).parse(dateString)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show()
+                null
+            }
+        } else {
+            null
+        }
+    }
+
+    private fun updateGoalListWithProgress(goals: List<GoalObject>) {
+        val goalsWithProgress = mutableListOf<GoalWithProgress>()
+        for (goal in goals) {
+            val investmentsForGoal = investmentDao.getInvestmentsByGoalId(goal.id)
+            val amountInvested = investmentsForGoal.sumOf { it.value }
+            val percentageProgress = if (goal.targetValue > 0) (amountInvested / goal.targetValue * 100).toInt() else 0
+            val remainingAmount = goal.targetValue - amountInvested
+            goalsWithProgress.add(GoalWithProgress(goal, amountInvested, percentageProgress, remainingAmount))
+        }
+        goalAdapter.updateData(goalsWithProgress)
+    }
 
     private fun setupBottomNavigation() {
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNavigationView)

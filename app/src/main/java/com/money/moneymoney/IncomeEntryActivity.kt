@@ -34,6 +34,7 @@ class IncomeEntryActivity : AppCompatActivity() {
     private lateinit var incomeDao: IncomeDao
     private lateinit var previousIncomeAdapter: PreviousIncomeAdapter
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
+    private var editingIncome: IncomeObject? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +54,18 @@ class IncomeEntryActivity : AppCompatActivity() {
 
         // Initialize IncomeDao
         incomeDao = IncomeDao(this)
+
+        // Check if editing an existing income
+        editingIncome = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("EXTRA_INCOME", IncomeObject::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("EXTRA_INCOME")
+        }
+        if (editingIncome != null) {
+            populateFields(editingIncome!!)
+            buttonSaveIncome.text = "Update Income"
+        }
 
         // Set up Date Picker
         editTextIncomeDate.setOnClickListener {
@@ -127,6 +140,19 @@ class IncomeEntryActivity : AppCompatActivity() {
         editTextIncomeDate.setText(formattedDate)
     }
 
+    private fun populateFields(income: IncomeObject) {
+        editTextIncomeValue.setText(income.value.toString())
+        editTextIncomeComment.setText(income.comment ?: "")
+        selectedDateInMillis = income.date
+        updateDateEditText()
+        // Set spinner selection for currency
+        val currencyIndex = (spinnerIncomeCurrency.adapter as? android.widget.ArrayAdapter<String>)?.getPosition(income.currency) ?: 0
+        spinnerIncomeCurrency.setSelection(currencyIndex)
+        // Set spinner selection for category if needed
+        val categoryIndex = (spinnerIncomeCategory.adapter as? android.widget.ArrayAdapter<String>)?.getPosition(income.category) ?: 0
+        spinnerIncomeCategory.setSelection(categoryIndex)
+    }
+
     private fun saveIncomeData() {
         val currency = spinnerIncomeCurrency.selectedItem.toString()
         val category = spinnerIncomeCategory.selectedItem.toString()
@@ -135,17 +161,29 @@ class IncomeEntryActivity : AppCompatActivity() {
 
         if (valueStr.isNotEmpty()) {
             val value = valueStr.toDouble()
-            val insertedRowId = incomeDao.addIncome(currency, category, value, comment, selectedDateInMillis)
-
-            if (insertedRowId > 0) {
-                Toast.makeText(this, "Income data saved successfully", Toast.LENGTH_SHORT).show()
-                // Clear input fields after saving
-                editTextIncomeValue.text.clear()
-                editTextIncomeComment.text.clear()
-                // Keep the selected date
-                loadPreviousIncomes() // Reload the list after saving
+            if (editingIncome == null) {
+                // Add new income
+                val insertedRowId = incomeDao.addIncome(currency, category, value, comment, selectedDateInMillis)
+                if (insertedRowId > 0) {
+                    Toast.makeText(this, "Income data saved successfully", Toast.LENGTH_SHORT).show()
+                    editTextIncomeValue.text.clear()
+                    editTextIncomeComment.text.clear()
+                    loadPreviousIncomes()
+                } else {
+                    Toast.makeText(this, "Failed to save income data", Toast.LENGTH_SHORT).show()
+                }
             } else {
-                Toast.makeText(this, "Failed to save income data", Toast.LENGTH_SHORT).show()
+                // Update existing income
+                val updatedIncome = editingIncome!!.copy(
+                    currency = currency,
+                    category = category,
+                    value = value,
+                    comment = comment,
+                    date = selectedDateInMillis
+                )
+                incomeDao.updateIncome(updatedIncome)
+                Toast.makeText(this, "Income updated successfully", Toast.LENGTH_SHORT).show()
+                finish()
             }
         } else {
             Toast.makeText(this, "Please enter the income value", Toast.LENGTH_SHORT).show()

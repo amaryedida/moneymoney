@@ -26,7 +26,7 @@ class InvestmentListAdapter(private var investments: List<InvestmentObject> = em
         val dateTextView: TextView = itemView.findViewById(R.id.text_view_date)
         val currencyTextView: TextView = itemView.findViewById(R.id.text_view_currency)
         val commentTextView: TextView = itemView.findViewById(R.id.text_view_comment)
-        val goalNameTextView: TextView = itemView.findViewById(R.id.textViewGoalName)
+        val goalNameTextView: TextView = itemView.findViewById(R.id.text_view_goal_name)
         val editButton: ImageButton = itemView.findViewById(R.id.button_edit)
         val deleteButton: ImageButton = itemView.findViewById(R.id.button_delete)
     }

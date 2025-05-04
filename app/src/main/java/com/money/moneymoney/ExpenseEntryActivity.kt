@@ -218,22 +218,38 @@ class ExpenseEntryActivity : AppCompatActivity() {
         val currency = spinnerExpenseCurrency.selectedItem.toString()
         val comment = editTextExpenseComment.text.toString()
 
-        val expense = ExpenseObject(
-            id = editingExpense?.id ?: 0,
-            currency = currency,
-            category = category,
-            value = value,
-            comment = if (comment.isEmpty()) null else comment,
-            date = selectedDateInMillis
-        )
-
         if (editingExpense == null) {
-            expenseDao.addExpense(expense)
+            // Add new expense
+            val newExpense = ExpenseObject(
+                id = 0,
+                currency = currency,
+                category = category,
+                value = value,
+                comment = if (comment.isEmpty()) null else comment,
+                date = selectedDateInMillis
+            )
+            val insertedRowId = expenseDao.addExpense(newExpense)
+            if (insertedRowId > 0) {
+                Toast.makeText(this, "Expense data saved successfully", Toast.LENGTH_SHORT).show()
+                editTextExpenseValue.text.clear()
+                editTextExpenseComment.text.clear()
+                loadPreviousExpenses()
+            } else {
+                Toast.makeText(this, "Failed to save expense data", Toast.LENGTH_SHORT).show()
+            }
         } else {
-            expenseDao.updateExpense(expense)
+            // Update existing expense
+            val updatedExpense = editingExpense!!.copy(
+                currency = currency,
+                category = category,
+                value = value,
+                comment = if (comment.isEmpty()) null else comment,
+                date = selectedDateInMillis
+            )
+            expenseDao.updateExpense(updatedExpense)
+            Toast.makeText(this, "Expense updated successfully", Toast.LENGTH_SHORT).show()
+            finish()
         }
-
-        finish()
     }
 
     private fun loadPreviousExpenses() {

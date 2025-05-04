@@ -7,6 +7,9 @@ import android.widget.ProgressBar
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class GoalListAdapter(
     private var goals: List<GoalWithProgress>,
@@ -21,6 +24,7 @@ class GoalListAdapter(
 
     class GoalViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.text_view_goal_name)
+        val creationDateTextView: TextView = itemView.findViewById(R.id.text_view_goal_creation_date)
         val targetValueTextView: TextView = itemView.findViewById(R.id.text_view_target_value)
         val progressBar: ProgressBar = itemView.findViewById(R.id.progress_bar_goal)
         val percentageTextView: TextView = itemView.findViewById(R.id.text_view_percentage)
@@ -39,6 +43,8 @@ class GoalListAdapter(
         val currentGoal = goals[position]
         val goal = currentGoal.goal
         holder.nameTextView.text = goal.name
+        val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        holder.creationDateTextView.text = "Created: " + dateFormatter.format(Date(goal.creationDate))
         holder.targetValueTextView.text = String.format("%.2f %s", goal.targetValue, goal.currency)
         holder.progressBar.progress = currentGoal.percentageProgress
         holder.percentageTextView.text = "${currentGoal.percentageProgress}%"

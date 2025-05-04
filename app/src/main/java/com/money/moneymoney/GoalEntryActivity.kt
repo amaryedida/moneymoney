@@ -22,6 +22,7 @@ class GoalEntryActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "GoalEntryActivity"
+        const val EXTRA_GOAL = "EXTRA_GOAL"
     }
 
     private lateinit var btnAddGoal: Button
@@ -36,6 +37,7 @@ class GoalEntryActivity : AppCompatActivity() {
     private lateinit var goalDao: GoalDao
     private lateinit var bottomNavigationView: BottomNavigationView
     private var selectedCreationDateInMillis: Long? = null
+    private var currentGoal: GoalObject? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +46,6 @@ class GoalEntryActivity : AppCompatActivity() {
         Log.d(TAG, "Layout set to activity_goal_entry")
 
         try {
-            btnAddGoal = findViewById(R.id.btnAddGoal)
             recyclerViewGoals = findViewById(R.id.recyclerViewGoals)
             layoutAddGoalForm = findViewById(R.id.layoutAddGoalForm)
             editTextGoalName = findViewById(R.id.editTextGoalName)
@@ -76,6 +77,12 @@ class GoalEntryActivity : AppCompatActivity() {
 
             loadActiveGoals()
             Log.d(TAG, "Active goals loaded")
+
+            // Check if we're editing an existing goal
+            currentGoal = intent.getSerializableExtra(EXTRA_GOAL) as? GoalObject
+            if (currentGoal != null) {
+                populateGoalData()
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error in initialization", e)
             Toast.makeText(this, "Error in initialization: ${e.message}", Toast.LENGTH_LONG).show()
@@ -83,19 +90,24 @@ class GoalEntryActivity : AppCompatActivity() {
             return
         }
 
-        btnAddGoal.setOnClickListener {
-            Log.d(TAG, "Add Goal button clicked, showing form")
-            layoutAddGoalForm.visibility = View.VISIBLE
-        }
+        // Always show the form
+        layoutAddGoalForm.visibility = View.VISIBLE
 
         editTextGoalCreationDate.setOnClickListener {
             Log.d(TAG, "Goal creation date field clicked")
             showDatePickerDialog()
         }
 
+        // Set button text based on whether we're creating or updating
+        buttonSaveGoal.text = if (currentGoal == null) "Save Goal" else "Update Goal"
+
         buttonSaveGoal.setOnClickListener {
-            Log.d(TAG, "Save Goal button clicked")
-            saveNewGoal()
+            Log.d(TAG, "Save/Update Goal button clicked")
+            if (currentGoal == null) {
+                saveNewGoal()
+            } else {
+                updateExistingGoal()
+            }
         }
 
         // Set up bottom navigation
@@ -116,11 +128,6 @@ class GoalEntryActivity : AppCompatActivity() {
 
         updateCreationDateEditText()
         Log.d(TAG, "GoalEntryActivity onCreate completed successfully")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        loadActiveGoals()
     }
 
     private fun loadActiveGoals() {
@@ -185,6 +192,45 @@ class GoalEntryActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Please enter goal name, target amount, and creation date", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun updateExistingGoal() {
+        val name = editTextGoalName.text.toString().trim()
+        val targetValueStr = editTextTargetAmount.text.toString().trim()
+        val currency = spinnerGoalCurrency.selectedItem.toString()
+        val creationDateInMillis = selectedCreationDateInMillis
+
+        if (name.isNotEmpty() && targetValueStr.isNotEmpty() && creationDateInMillis != null) {
+            val targetValue = targetValueStr.toDouble()
+            val goal = currentGoal ?: return
+            
+            if (goalDao.updateGoal(goal.id, name, targetValue, creationDateInMillis, currency)) {
+                Toast.makeText(this, "Goal updated successfully", Toast.LENGTH_SHORT).show()
+                setResult(RESULT_OK)
+                finish()
+            } else {
+                Toast.makeText(this, "Failed to update goal", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Please enter goal name, target amount, and creation date", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun populateGoalData() {
+        val goal = currentGoal ?: return
+        editTextGoalName.setText(goal.name)
+        editTextTargetAmount.setText(goal.targetValue.toString())
+        spinnerGoalCurrency.setSelection(getCurrencyIndex(goal.currency))
+        selectedCreationDateInMillis = goal.creationDate
+        updateCreationDateEditText()
+        
+        // Update button text to show "Update Goal" when editing
+        buttonSaveGoal.text = "Update Goal"
+    }
+
+    private fun getCurrencyIndex(currency: String): Int {
+        val currencies = arrayOf("INR", "AED")
+        return currencies.indexOfFirst { it == currency }
     }
 
     private fun setupCurrencySpinner() {

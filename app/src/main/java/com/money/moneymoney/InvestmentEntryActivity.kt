@@ -39,6 +39,7 @@ class InvestmentEntryActivity : AppCompatActivity() {
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
     private var goalList: MutableList<String> = mutableListOf("None") // Default "None" option
     private var goalIdMap: MutableMap<String, Long?> = mutableMapOf("None" to null)
+    private var editingInvestment: InvestmentObject? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,6 +89,18 @@ class InvestmentEntryActivity : AppCompatActivity() {
         // Don't set selectedItemId to avoid automatic navigation
 
         updateDateEditText()
+
+        // Check if editing an existing investment
+        editingInvestment = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("EXTRA_INVESTMENT", InvestmentObject::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("EXTRA_INVESTMENT")
+        }
+        if (editingInvestment != null) {
+            populateFields(editingInvestment!!)
+            buttonSaveInvestment.text = "Update Investment"
+        }
     }
 
     private fun loadGoals() {
@@ -134,6 +147,23 @@ class InvestmentEntryActivity : AppCompatActivity() {
         editTextInvestmentDate.setText(formattedDate)
     }
 
+    private fun populateFields(investment: InvestmentObject) {
+        editTextInvestmentValue.setText(investment.value.toString())
+        editTextInvestmentComment.setText(investment.comment ?: "")
+        selectedDateInMillis = investment.date
+        updateDateEditText()
+        // Set spinner selection for currency
+        val currencyIndex = (spinnerInvestmentCurrency.adapter as? ArrayAdapter<String>)?.getPosition(investment.currency) ?: 0
+        spinnerInvestmentCurrency.setSelection(currencyIndex)
+        // Set spinner selection for category
+        val categoryIndex = (spinnerInvestmentCategory.adapter as? ArrayAdapter<String>)?.getPosition(investment.category) ?: 0
+        spinnerInvestmentCategory.setSelection(categoryIndex)
+        // Set spinner selection for goal
+        val goalName = investment.goalName ?: "None"
+        val goalIndex = goalList.indexOf(goalName)
+        spinnerInvestmentGoal.setSelection(if (goalIndex >= 0) goalIndex else 0)
+    }
+
     private fun saveInvestmentData() {
         val currency = spinnerInvestmentCurrency.selectedItem.toString()
         val category = spinnerInvestmentCategory.selectedItem.toString()
@@ -144,15 +174,31 @@ class InvestmentEntryActivity : AppCompatActivity() {
 
         if (valueStr.isNotEmpty()) {
             val value = valueStr.toDouble()
-            val insertedRowId = investmentDao.addInvestment(currency, category, value, comment, selectedDateInMillis, goalId)
-
-            if (insertedRowId > 0) {
-                Toast.makeText(this, "Investment data saved successfully", Toast.LENGTH_SHORT).show()
-                editTextInvestmentValue.text.clear()
-                editTextInvestmentComment.text.clear()
-                loadPreviousInvestments() // Reload after saving
+            if (editingInvestment == null) {
+                // Add new investment
+                val insertedRowId = investmentDao.addInvestment(currency, category, value, comment, selectedDateInMillis, goalId)
+                if (insertedRowId > 0) {
+                    Toast.makeText(this, "Investment data saved successfully", Toast.LENGTH_SHORT).show()
+                    editTextInvestmentValue.text.clear()
+                    editTextInvestmentComment.text.clear()
+                    loadPreviousInvestments()
+                } else {
+                    Toast.makeText(this, "Failed to save investment data", Toast.LENGTH_SHORT).show()
+                }
             } else {
-                Toast.makeText(this, "Failed to save investment data", Toast.LENGTH_SHORT).show()
+                // Update existing investment
+                val updatedInvestment = editingInvestment!!.copy(
+                    currency = currency,
+                    category = category,
+                    value = value,
+                    comment = comment,
+                    date = selectedDateInMillis,
+                    goalId = goalId,
+                    goalName = if (selectedGoalName == "None") null else selectedGoalName
+                )
+                investmentDao.updateInvestment(updatedInvestment)
+                Toast.makeText(this, "Investment updated successfully", Toast.LENGTH_SHORT).show()
+                finish()
             }
         } else {
             Toast.makeText(this, "Please enter the investment value", Toast.LENGTH_SHORT).show()

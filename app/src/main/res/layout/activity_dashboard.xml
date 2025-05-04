@@ -25,152 +25,140 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Financial Summary (Current Month)"
-                android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textStyle="bold"
                 android:layout_marginBottom="16dp" />
 
-            <LinearLayout
+            <!-- INR Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                android:layout_marginBottom="12dp">
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-                    <TextView
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:src="@drawable/ic_inr"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:tint="@color/teal_700" />
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="INR"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
-                    <TextView
-                        android:id="@+id/textViewIncomeINR"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Income: ₹0.00" />
-                    <TextView
-                        android:id="@+id/textViewExpensesINR"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Expenses: ₹0.00" />
-                    <TextView
-                        android:id="@+id/textViewInvestmentsINR"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Investments: ₹0.00" />
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:text="INR"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/textViewIncomeINR"
+                            android:text="Income: ₹0.00"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+                        <TextView
+                            android:id="@+id/textViewExpensesINR"
+                            android:text="Expenses: ₹0.00"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+                        <TextView
+                            android:id="@+id/textViewInvestmentsINR"
+                            android:text="Investments: ₹0.00"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+                    </LinearLayout>
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
+            <!-- AED Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
+                android:layout_marginBottom="12dp">
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-                    <TextView
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:src="@drawable/ic_aed"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:tint="@color/teal_700" />
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="AED"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
-                    <TextView
-                        android:id="@+id/textViewIncomeAED"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Income: د.إ 0.00" />
-                    <TextView
-                        android:id="@+id/textViewExpensesAED"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Expenses: د.إ 0.00" />
-                    <TextView
-                        android:id="@+id/textViewInvestmentsAED"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Investments: د.إ 0.00" />
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:text="AED"
+                            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/textViewIncomeAED"
+                            android:text="Income: د.إ 0.00"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+                        <TextView
+                            android:id="@+id/textViewExpensesAED"
+                            android:text="Expenses: د.إ 0.00"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+                        <TextView
+                            android:id="@+id/textViewInvestmentsAED"
+                            android:text="Investments: د.إ 0.00"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+                    </LinearLayout>
                 </LinearLayout>
-
-            </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Investment Goal Progress"
-                android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textStyle="bold"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="16dp" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewGoalProgress"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_goal_progress" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Quick Actions"
-                android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center">
-
-                <Button
-                    android:id="@+id/buttonAddIncome"
-                    android:layout_width="0dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp">
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewGoalProgress"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Add Income"
-                    android:layout_marginEnd="8dp" />
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_goal_progress" />
+            </com.google.android.material.card.MaterialCardView>
 
-                <Button
-                    android:id="@+id/buttonAddExpense"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Add Expense"
-                    android:layout_marginStart="8dp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="8dp">
-
-                <Button
-                    android:id="@+id/buttonAddInvestment"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Add Investment"
-                    android:layout_marginEnd="8dp" />
-
-                <Button
-                    android:id="@+id/buttonAddGoal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Add Goal"
-                    android:layout_marginStart="8dp" />
-
-            </LinearLayout>
             <Button
                 android:id="@+id/buttonViewReports"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="View Reports"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp" />
-
+                android:layout_marginTop="24dp"
+                style="@style/Widget.Material3.Button.FilledTonal" />
         </LinearLayout>
-
     </ScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:contentDescription="Add"
+        app:srcCompat="@drawable/ic_add"
+        app:tint="@color/white"
+        app:backgroundTint="@color/teal_700"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"

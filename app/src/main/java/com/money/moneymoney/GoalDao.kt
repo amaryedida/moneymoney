@@ -144,4 +144,47 @@ class GoalDao(context: Context) {
     fun close() {
         dbHelper.close()
     }
+
+    fun getActiveGoalsByCreationDateRange(startDate: Long?, endDate: Long?): MutableList<GoalObject> {
+        val goals = mutableListOf<GoalObject>()
+        val selection = StringBuilder("$COLUMN_GOAL_STATUS = ?")
+        val selectionArgs = mutableListOf(STATUS_ACTIVE)
+        if (startDate != null && endDate != null) {
+            selection.append(" AND $COLUMN_GOAL_CREATION_DATE BETWEEN ? AND ?")
+            selectionArgs.add(startDate.toString())
+            selectionArgs.add(endDate.toString())
+        } else if (startDate != null) {
+            selection.append(" AND $COLUMN_GOAL_CREATION_DATE >= ?")
+            selectionArgs.add(startDate.toString())
+        } else if (endDate != null) {
+            selection.append(" AND $COLUMN_GOAL_CREATION_DATE <= ?")
+            selectionArgs.add(endDate.toString())
+        }
+        val cursor: Cursor = database.query(
+            TABLE_GOALS,
+            arrayOf(
+                COLUMN_GOAL_ID,
+                COLUMN_GOAL_NAME,
+                COLUMN_GOAL_TARGET_VALUE,
+                COLUMN_GOAL_CURRENCY,
+                COLUMN_GOAL_CREATION_DATE,
+                COLUMN_GOAL_STATUS,
+                COLUMN_GOAL_COMPLETION_DATE
+            ),
+            selection.toString(),
+            selectionArgs.toTypedArray(),
+            null,
+            null,
+            null
+        )
+        cursor.use {
+            if (it.moveToFirst()) {
+                do {
+                    val goal = createGoalFromCursor(it)
+                    goals.add(goal)
+                } while (it.moveToNext())
+            }
+        }
+        return goals
+    }
 }
