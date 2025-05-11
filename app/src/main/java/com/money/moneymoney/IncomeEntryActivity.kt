@@ -15,6 +15,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
+import android.widget.ArrayAdapter
+import java.util.Date
+import java.text.SimpleDateFormat
 
 class IncomeEntryActivity : AppCompatActivity() {
 
@@ -35,6 +38,8 @@ class IncomeEntryActivity : AppCompatActivity() {
     private lateinit var previousIncomeAdapter: PreviousIncomeAdapter
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
     private var editingIncome: IncomeObject? = null
+
+    private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,16 +146,28 @@ class IncomeEntryActivity : AppCompatActivity() {
     }
 
     private fun populateFields(income: IncomeObject) {
-        editTextIncomeValue.setText(income.value.toString())
-        editTextIncomeComment.setText(income.comment ?: "")
+        editTextIncomeValue.setText(String.format(Locale.getDefault(), "%.2f", income.value))
+        editTextIncomeComment.setText(income.comment)
         selectedDateInMillis = income.date
-        updateDateEditText()
-        // Set spinner selection for currency
-        val currencyIndex = (spinnerIncomeCurrency.adapter as? android.widget.ArrayAdapter<String>)?.getPosition(income.currency) ?: 0
-        spinnerIncomeCurrency.setSelection(currencyIndex)
-        // Set spinner selection for category if needed
-        val categoryIndex = (spinnerIncomeCategory.adapter as? android.widget.ArrayAdapter<String>)?.getPosition(income.category) ?: 0
-        spinnerIncomeCategory.setSelection(categoryIndex)
+        editTextIncomeDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
+
+        // Set category in spinner
+        val categoryAdapter = spinnerIncomeCategory.adapter
+        if (categoryAdapter is ArrayAdapter<*>) {
+            val position = (0 until categoryAdapter.count).firstOrNull { 
+                categoryAdapter.getItem(it) == income.category 
+            } ?: 0
+            spinnerIncomeCategory.setSelection(position)
+        }
+
+        // Set currency in spinner
+        val currencyAdapter = spinnerIncomeCurrency.adapter
+        if (currencyAdapter is ArrayAdapter<*>) {
+            val currencyPosition = (0 until currencyAdapter.count).firstOrNull {
+                currencyAdapter.getItem(it) == income.currency
+            } ?: 0
+            spinnerIncomeCurrency.setSelection(currencyPosition)
+        }
     }
 
     private fun saveIncomeData() {

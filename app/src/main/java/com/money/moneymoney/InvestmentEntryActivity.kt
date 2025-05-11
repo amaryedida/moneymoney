@@ -16,11 +16,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
+import java.util.Date
+import java.text.SimpleDateFormat
 
 class InvestmentEntryActivity : AppCompatActivity() {
 
     companion object {
-        private const val TAG = "InvestmentEntryActivity"
+        private const val TAG = "InvestmentEntryActivity"           
     }
 
     private lateinit var editTextInvestmentDate: EditText
@@ -40,6 +42,8 @@ class InvestmentEntryActivity : AppCompatActivity() {
     private var goalList: MutableList<String> = mutableListOf("None") // Default "None" option
     private var goalIdMap: MutableMap<String, Long?> = mutableMapOf("None" to null)
     private var editingInvestment: InvestmentObject? = null
+
+    private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -148,20 +152,37 @@ class InvestmentEntryActivity : AppCompatActivity() {
     }
 
     private fun populateFields(investment: InvestmentObject) {
-        editTextInvestmentValue.setText(investment.value.toString())
-        editTextInvestmentComment.setText(investment.comment ?: "")
+        editTextInvestmentValue.setText(String.format(Locale.getDefault(), "%.2f", investment.value))
+        editTextInvestmentComment.setText(investment.comment)
         selectedDateInMillis = investment.date
-        updateDateEditText()
-        // Set spinner selection for currency
-        val currencyIndex = (spinnerInvestmentCurrency.adapter as? ArrayAdapter<String>)?.getPosition(investment.currency) ?: 0
-        spinnerInvestmentCurrency.setSelection(currencyIndex)
-        // Set spinner selection for category
-        val categoryIndex = (spinnerInvestmentCategory.adapter as? ArrayAdapter<String>)?.getPosition(investment.category) ?: 0
-        spinnerInvestmentCategory.setSelection(categoryIndex)
-        // Set spinner selection for goal
-        val goalName = investment.goalName ?: "None"
-        val goalIndex = goalList.indexOf(goalName)
-        spinnerInvestmentGoal.setSelection(if (goalIndex >= 0) goalIndex else 0)
+        editTextInvestmentDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
+
+        // Set category in spinner
+        val categoryAdapter = spinnerInvestmentCategory.adapter
+        if (categoryAdapter is ArrayAdapter<*>) {
+            val position = (0 until categoryAdapter.count).firstOrNull { 
+                categoryAdapter.getItem(it) == investment.category 
+            } ?: 0
+            spinnerInvestmentCategory.setSelection(position)
+        }
+
+        // Set currency in spinner
+        val currencyAdapter = spinnerInvestmentCurrency.adapter
+        if (currencyAdapter is ArrayAdapter<*>) {
+            val currencyPosition = (0 until currencyAdapter.count).firstOrNull {
+                currencyAdapter.getItem(it) == investment.currency
+            } ?: 0
+            spinnerInvestmentCurrency.setSelection(currencyPosition)
+        }
+
+        // Set goal in spinner
+        val goalAdapter = spinnerInvestmentGoal.adapter
+        if (goalAdapter is ArrayAdapter<*>) {
+            val goalPosition = (0 until goalAdapter.count).firstOrNull {
+                goalAdapter.getItem(it) == investment.goalName ?: "None"
+            } ?: 0
+            spinnerInvestmentGoal.setSelection(goalPosition)
+        }
     }
 
     private fun saveInvestmentData() {

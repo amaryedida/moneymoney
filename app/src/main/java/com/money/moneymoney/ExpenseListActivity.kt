@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,6 +29,14 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
     private var selectedCurrency: String? = null
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    private val editExpenseLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            loadExpenses() // Refresh the list after successful edit
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -158,23 +167,12 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
     override fun onEditItem(expense: ExpenseObject) {
         val intent = Intent(this, ExpenseEntryActivity::class.java)
         intent.putExtra("EXTRA_EXPENSE", expense)
-        startActivityForResult(intent, EDIT_EXPENSE_REQUEST_CODE)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == EDIT_EXPENSE_REQUEST_CODE && resultCode == RESULT_OK) {
-            loadExpenses() // Refresh the list after successful edit
-        }
+        editExpenseLauncher.launch(intent)
     }
 
     override fun onDeleteItem(expense: ExpenseObject) {
         expenseDao.deleteExpense(expense)
         loadExpenses()
         Toast.makeText(this, "Expense deleted", Toast.LENGTH_SHORT).show()
-    }
-
-    companion object {
-        private const val EDIT_EXPENSE_REQUEST_CODE = 1
     }
 }

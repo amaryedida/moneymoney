@@ -166,8 +166,8 @@ class ExpenseEntryActivity : AppCompatActivity() {
         editTextExpenseDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
 
         // Set category in spinner
-        val categoryAdapter = spinnerExpenseCategory.adapter as? ArrayAdapter<String>
-        if (categoryAdapter != null) {
+        val categoryAdapter = spinnerExpenseCategory.adapter
+        if (categoryAdapter is ArrayAdapter<*>) {
             val position = (0 until categoryAdapter.count).firstOrNull { 
                 categoryAdapter.getItem(it) == expense.category 
             } ?: 0
@@ -175,8 +175,8 @@ class ExpenseEntryActivity : AppCompatActivity() {
         }
 
         // Set currency in spinner
-        val currencyAdapter = spinnerExpenseCurrency.adapter as? ArrayAdapter<String>
-        if (currencyAdapter != null) {
+        val currencyAdapter = spinnerExpenseCurrency.adapter
+        if (currencyAdapter is ArrayAdapter<*>) {
             val currencyPosition = (0 until currencyAdapter.count).firstOrNull {
                 currencyAdapter.getItem(it) == expense.currency
             } ?: 0
