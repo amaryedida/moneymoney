@@ -20,54 +20,52 @@
             android:gravity="center_vertical">
 
             <TextView
-                android:id="@+id/textViewInvestmentName"
+                android:id="@+id/textViewPreviousInvestmentDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                android:text="Investment Name" />
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:text="Date" />
 
-            <ImageButton
-                android:id="@+id/buttonEdit"
+            <TextView
+                android:id="@+id/textViewPreviousInvestmentCurrency"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Edit Investment"
-                android:src="@drawable/ic_edit" />
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:text="Currency" />
+        </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/buttonDelete"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/textViewPreviousInvestmentValue"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:text="Value" />
+
+            <TextView
+                android:id="@+id/textViewPreviousInvestmentCategory"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Delete Investment"
-                android:src="@drawable/ic_delete" />
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:text="Category" />
         </LinearLayout>
 
         <TextView
-            android:id="@+id/textViewInvestmentAmount"
+            android:id="@+id/textViewPreviousInvestmentGoal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-            android:text="Amount" />
-
-        <TextView
-            android:id="@+id/textViewInvestmentDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-            android:text="Date" />
-
-        <TextView
-            android:id="@+id/textViewInvestmentType"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-            android:text="Type" />
+            android:text="Goal" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

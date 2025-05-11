@@ -44,11 +44,12 @@ class GoalListAdapter(
         val goal = currentGoal.goal
         holder.nameTextView.text = goal.name
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        holder.creationDateTextView.text = "Created: " + dateFormatter.format(Date(goal.creationDate))
+        val creationDate = goal.creationDate ?: System.currentTimeMillis()
+        holder.creationDateTextView.text = "Created: " + dateFormatter.format(Date(creationDate))
         holder.targetValueTextView.text = String.format("%.2f %s", goal.targetValue, goal.currency)
         holder.progressBar.progress = currentGoal.percentageProgress
         holder.percentageTextView.text = "${currentGoal.percentageProgress}%"
-        holder.amountInvestedTextView.text = String.format("%.2f %s", currentGoal.amountInvested, goal.currency)
+        holder.amountInvestedTextView.text = String.format("Invested: %.2f %s", currentGoal.amountInvested, goal.currency)
 
         holder.editButton.setOnClickListener {
             listener.onEditItem(goal)
