@@ -37,7 +37,7 @@
                 android:padding="16dp">
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_aed"
-                    style="@style/Widget.Material3.Button.FilledTonal"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -50,7 +50,7 @@
                     android:layout_height="wrap_content" />
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_inr"
-                    style="@style/Widget.Material3.Button.FilledTonal"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
