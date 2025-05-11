@@ -87,6 +87,12 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
         buttonClearFilter.setOnClickListener {
             clearFilter()
         }
+
+        // Add long press on RecyclerView to add new investment
+        recyclerViewInvestments.setOnLongClickListener {
+            addNewInvestment()
+            true
+        }
     }
 
     private fun setupBottomNavigation() {
@@ -213,6 +219,17 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
         } catch (e: Exception) {
             Log.e(TAG, "Error deleting investment", e)
             Toast.makeText(this, "Error deleting investment: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun addNewInvestment() {
+        try {
+            val intent = Intent(this, InvestmentEntryActivity::class.java)
+            intent.putExtra(CurrencySelectionActivity.EXTRA_CURRENCY, selectedCurrency)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error starting InvestmentEntryActivity", e)
+            Toast.makeText(this, "Error adding investment: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 }
