@@ -71,7 +71,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_income"
-            style="@style/Widget.Material3.Button.Filled"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:enabled="false"
@@ -83,7 +83,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_expense"
-            style="@style/Widget.Material3.Button.Filled"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:enabled="false"
@@ -95,7 +95,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_investment"
-            style="@style/Widget.Material3.Button.Filled"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:enabled="false"
@@ -107,7 +107,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_goal"
-            style="@style/Widget.Material3.Button.Filled"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:enabled="false"
