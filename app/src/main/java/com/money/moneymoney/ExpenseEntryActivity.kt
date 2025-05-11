@@ -202,53 +202,69 @@ class ExpenseEntryActivity : AppCompatActivity() {
     }
 
     private fun saveExpense() {
-        val valueStr = editTextExpenseValue.text.toString()
-        if (valueStr.isEmpty()) {
-            Toast.makeText(this, "Please enter a value", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val value = valueStr.toDoubleOrNull()
-        if (value == null) {
-            Toast.makeText(this, "Please enter a valid number", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val category = spinnerExpenseCategory.selectedItem.toString()
-        val currency = spinnerExpenseCurrency.selectedItem.toString()
-        val comment = editTextExpenseComment.text.toString()
-
-        if (editingExpense == null) {
-            // Add new expense
-            val newExpense = ExpenseObject(
-                id = 0,
-                currency = currency,
-                category = category,
-                value = value,
-                comment = if (comment.isEmpty()) null else comment,
-                date = selectedDateInMillis
-            )
-            val insertedRowId = expenseDao.addExpense(newExpense)
-            if (insertedRowId > 0) {
-                Toast.makeText(this, "Expense data saved successfully", Toast.LENGTH_SHORT).show()
-                editTextExpenseValue.text.clear()
-                editTextExpenseComment.text.clear()
-                loadPreviousExpenses()
-            } else {
-                Toast.makeText(this, "Failed to save expense data", Toast.LENGTH_SHORT).show()
+        try {
+            val valueStr = editTextExpenseValue.text.toString()
+            if (valueStr.isEmpty()) {
+                Toast.makeText(this, "Please enter a value", Toast.LENGTH_SHORT).show()
+                return
             }
-        } else {
-            // Update existing expense
-            val updatedExpense = editingExpense!!.copy(
-                currency = currency,
-                category = category,
-                value = value,
-                comment = if (comment.isEmpty()) null else comment,
-                date = selectedDateInMillis
-            )
-            expenseDao.updateExpense(updatedExpense)
-            Toast.makeText(this, "Expense updated successfully", Toast.LENGTH_SHORT).show()
-            finish()
+
+            val value = valueStr.toDoubleOrNull()
+            if (value == null) {
+                Toast.makeText(this, "Please enter a valid number", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            if (value <= 0) {
+                Toast.makeText(this, "Value must be greater than 0", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val category = spinnerExpenseCategory.selectedItem.toString()
+            val currency = spinnerExpenseCurrency.selectedItem.toString()
+            val comment = editTextExpenseComment.text.toString()
+
+            if (editingExpense == null) {
+                // Add new expense
+                val newExpense = ExpenseObject(
+                    id = 0,
+                    currency = currency,
+                    category = category,
+                    value = value,
+                    comment = if (comment.isEmpty()) null else comment,
+                    date = selectedDateInMillis
+                )
+                val insertedRowId = expenseDao.addExpense(newExpense)
+                if (insertedRowId > 0) {
+                    Toast.makeText(this, "Expense saved successfully", Toast.LENGTH_SHORT).show()
+                    editTextExpenseValue.text.clear()
+                    editTextExpenseComment.text.clear()
+                    loadPreviousExpenses()
+                } else {
+                    Toast.makeText(this, "Failed to save expense", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                // Update existing expense
+                val updatedExpense = editingExpense!!.copy(
+                    currency = currency,
+                    category = category,
+                    value = value,
+                    comment = if (comment.isEmpty()) null else comment,
+                    date = selectedDateInMillis
+                )
+                try {
+                    expenseDao.updateExpense(updatedExpense)
+                    Toast.makeText(this, "Expense updated successfully", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
+                    finish()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error updating expense", e)
+                    Toast.makeText(this, "Failed to update expense: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving expense", e)
+            Toast.makeText(this, "An error occurred: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

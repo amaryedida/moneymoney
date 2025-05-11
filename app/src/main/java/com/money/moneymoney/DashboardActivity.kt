@@ -6,10 +6,12 @@ import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.Calendar
 
 class DashboardActivity : AppCompatActivity() {
@@ -32,11 +34,8 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var incomeDao: IncomeDao
     private lateinit var expenseDao: ExpenseDao
 
-    private lateinit var buttonAddIncome: Button
-    private lateinit var buttonAddExpense: Button
-    private lateinit var buttonAddInvestment: Button
-    private lateinit var buttonAddGoal: Button
     private lateinit var buttonViewReports: Button
+    private lateinit var fabAdd: FloatingActionButton
     private lateinit var bottomNavigation: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,11 +58,8 @@ class DashboardActivity : AppCompatActivity() {
         textViewExpensesAED = findViewById(R.id.textViewExpensesAED)
         textViewInvestmentsAED = findViewById(R.id.textViewInvestmentsAED)
 
-        buttonAddIncome = findViewById(R.id.buttonAddIncome)
-        buttonAddExpense = findViewById(R.id.buttonAddExpense)
-        buttonAddInvestment = findViewById(R.id.buttonAddInvestment)
-        buttonAddGoal = findViewById(R.id.buttonAddGoal)
         buttonViewReports = findViewById(R.id.buttonViewReports)
+        fabAdd = findViewById(R.id.fabAdd)
         bottomNavigation = findViewById(R.id.bottomNavigationView)
     }
 
@@ -92,50 +88,8 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        buttonAddIncome.setOnClickListener {
-            Log.d(TAG, "Add Income button clicked")
-            startActivityWithErrorHandling(
-                IncomeEntryActivity::class.java,
-                "Add Income",
-                "Income Entry"
-            )
-        }
-
-        buttonAddExpense.setOnClickListener {
-            Log.d(TAG, "Add Expense button clicked")
-            try {
-                Log.d(TAG, "Creating intent for ExpenseEntryActivity")
-                val intent = Intent(this, ExpenseEntryActivity::class.java)
-                Log.d(TAG, "Starting ExpenseEntryActivity")
-                startActivity(intent)
-                Log.d(TAG, "Successfully launched ExpenseEntryActivity")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error launching ExpenseEntryActivity", e)
-                Toast.makeText(this, "Error opening Add Expense: ${e.message}", Toast.LENGTH_LONG).show()
-            }
-        }
-
-        buttonAddInvestment.setOnClickListener {
-            Log.d(TAG, "Add Investment button clicked")
-            startActivityWithErrorHandling(
-                InvestmentEntryActivity::class.java,
-                "Add Investment",
-                "Investment Entry"
-            )
-        }
-
-        buttonAddGoal.setOnClickListener {
-            Log.d(TAG, "Add Goal button clicked")
-            try {
-                Log.d(TAG, "Creating intent for GoalEntryActivity")
-                val intent = Intent(this, GoalEntryActivity::class.java)
-                Log.d(TAG, "Starting GoalEntryActivity")
-                startActivity(intent)
-                Log.d(TAG, "Successfully launched GoalEntryActivity")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error launching GoalEntryActivity", e)
-                Toast.makeText(this, "Error opening Add Goal: ${e.message}", Toast.LENGTH_LONG).show()
-            }
+        fabAdd.setOnClickListener {
+            showAddOptionsDialog()
         }
 
         buttonViewReports.setOnClickListener {
@@ -146,6 +100,37 @@ class DashboardActivity : AppCompatActivity() {
                 "Currency Selection"
             )
         }
+    }
+
+    private fun showAddOptionsDialog() {
+        val options = arrayOf("Add Income", "Add Expense", "Add Investment", "Add Goal")
+        AlertDialog.Builder(this)
+            .setTitle("Add New")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> startActivityWithErrorHandling(
+                        IncomeEntryActivity::class.java,
+                        "Add Income",
+                        "Income Entry"
+                    )
+                    1 -> startActivityWithErrorHandling(
+                        ExpenseEntryActivity::class.java,
+                        "Add Expense",
+                        "Expense Entry"
+                    )
+                    2 -> startActivityWithErrorHandling(
+                        InvestmentEntryActivity::class.java,
+                        "Add Investment",
+                        "Investment Entry"
+                    )
+                    3 -> startActivityWithErrorHandling(
+                        GoalEntryActivity::class.java,
+                        "Add Goal",
+                        "Goal Entry"
+                    )
+                }
+            }
+            .show()
     }
 
     private fun startActivityWithErrorHandling(
