@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat
 class InvestmentEntryActivity : AppCompatActivity() {
 
     companion object {
-        private const val TAG = "InvestmentEntryActivity"           
+        private const val TAG = "InvestmentEntryActivity"                                       
     }
 
     private lateinit var editTextInvestmentDate: EditText
