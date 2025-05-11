@@ -4,19 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:title="Add/Edit Income"
-        app:navigationIcon="@drawable/ic_back"
-        app:titleCentered="true"
-        app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" />
-
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize"
+        android:layout_height="0dp"
+            android:layout_marginBottom="?attr/actionBarSize"
         android:padding="24dp">
 
         <LinearLayout
@@ -65,7 +56,7 @@
                 android:layout_height="wrap_content"
                 android:hint="Category"
                 android:layout_marginTop="16dp">
-                <AutoCompleteTextView
+                <Spinner
                     android:id="@+id/spinnerIncomeCategory"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
@@ -76,7 +67,7 @@
                 android:layout_height="wrap_content"
                 android:hint="Currency"
                 android:layout_marginTop="16dp">
-                <AutoCompleteTextView
+                <Spinner
                     android:id="@+id/spinnerIncomeCurrency"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
@@ -87,8 +78,32 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Save"
-                style="@style/Widget.Material3.Button.Filled"
+                style="@style/Widget.Material3.Button"
                 android:layout_marginTop="32dp"/>
+
+            <TextView
+                android:id="@+id/textViewPreviousIncome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Previous Incomes"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="8dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewPreviousIncome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
+
         </LinearLayout>
     </ScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:menu="@menu/bottom_navigation_menu" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
 
 class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListener {
@@ -63,6 +64,8 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
         editTextEndDate.setOnClickListener {
             showDatePickerDialog(editTextEndDate)
         }
+
+        setupBottomNavigation()
     }
 
     private fun loadGoals() {

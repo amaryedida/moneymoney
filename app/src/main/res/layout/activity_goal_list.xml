@@ -6,49 +6,27 @@
     android:layout_height="match_parent"
     tools:context=".GoalListActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:title="Goals"
-        app:titleCentered="true"
-        app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:layout_marginTop="?attr/actionBarSize">
+        android:gravity="center_vertical">
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayoutFilter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Start Date">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/edit_text_start_date"
-                android:focusable="false"
-                android:clickable="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-        </com.google.android.material.textfield.TextInputLayout>
+            android:hint="Filter goals">
 
-        <Space
-            android:layout_width="8dp"
-            android:layout_height="wrap_content" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="End Date">
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/edit_text_end_date"
-                android:focusable="false"
-                android:clickable="true"
+                android:id="@+id/editTextFilter"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1" />
+
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -56,16 +34,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Filter"
-            style="@style/Widget.Material3.Button.Filled"
+            style="@style/Widget.Material3.Button"
             android:layout_marginStart="8dp"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_clear_filter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Clear Filter"
-            style="@style/Widget.Material3.Button.Outlined"
-            android:layout_marginStart="8dp"/>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -74,19 +45,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="72dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:layout_below="@id/toolbar"
-        android:layout_alignParentBottom="true"/>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddGoal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="24dp"
-        app:srcCompat="@drawable/ic_add"
-        app:tint="@color/white"
-        app:backgroundTint="@color/teal_700" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
