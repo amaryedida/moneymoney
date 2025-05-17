@@ -137,23 +137,14 @@ class ExpenseEntryActivity : AppCompatActivity() {
     }
 
     private fun setupCategorySpinner() {
-        val categories = arrayOf(
-            "Food",
-            "Transportation",
-            "Entertainment",
-            "Shopping",
-            "Bills",
-            "Healthcare",
-            "Education",
-            "Other"
-        )
+        val categories = resources.getStringArray(R.array.expense_categories)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerExpenseCategory.adapter = adapter
     }
 
     private fun setupCurrencySpinner() {
-        val currencies = arrayOf("INR", "AED")
+        val currencies = resources.getStringArray(R.array.currencies)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerExpenseCurrency.adapter = adapter

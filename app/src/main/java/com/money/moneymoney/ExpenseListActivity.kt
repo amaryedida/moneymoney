@@ -48,7 +48,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
         buttonFilter = findViewById(R.id.button_filter)
         buttonClearFilter = findViewById(R.id.button_clear_filter)
 
-        selectedCurrency = intent.getStringExtra("EXTRA_CURRENCY")
+        selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
         if (selectedCurrency == null) {
             Log.e("ExpenseListActivity", "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
@@ -161,7 +161,9 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
 
     override fun onDestroy() {
         super.onDestroy()
-        expenseDao.close()
+        if (::expenseDao.isInitialized) {
+            expenseDao.close()
+        }
     }
 
     override fun onEditItem(expense: ExpenseObject) {

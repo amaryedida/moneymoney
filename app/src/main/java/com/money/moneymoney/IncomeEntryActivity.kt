@@ -57,6 +57,18 @@ class IncomeEntryActivity : AppCompatActivity() {
         textViewPreviousIncome = findViewById(R.id.textViewPreviousIncome)
         recyclerViewPreviousIncome = findViewById(R.id.recyclerViewPreviousIncome)
 
+        // Initialize spinners
+        val currencies = resources.getStringArray(R.array.currencies)
+        val categories = resources.getStringArray(R.array.income_categories)
+        
+        val currencyAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies)
+        currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerIncomeCurrency.adapter = currencyAdapter
+        
+        val categoryAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerIncomeCategory.adapter = categoryAdapter
+
         // Initialize IncomeDao
         incomeDao = IncomeDao(this)
 

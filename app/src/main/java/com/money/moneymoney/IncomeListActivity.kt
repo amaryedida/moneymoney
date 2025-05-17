@@ -39,7 +39,7 @@ class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionLi
         buttonFilter = findViewById(R.id.button_filter)
         buttonClearFilter = findViewById(R.id.button_clear_filter)
 
-        selectedCurrency = intent.getStringExtra("EXTRA_CURRENCY")
+        selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
         if (selectedCurrency == null) {
             Log.e("IncomeListActivity", "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
@@ -152,7 +152,9 @@ class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionLi
 
     override fun onDestroy() {
         super.onDestroy()
-        incomeDao.close()
+        if (::incomeDao.isInitialized) {
+            incomeDao.close()
+        }
     }
 
     override fun onEditItem(income: IncomeObject) {

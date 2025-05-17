@@ -64,6 +64,10 @@ class InvestmentEntryActivity : AppCompatActivity() {
         investmentDao = InvestmentDao(this)
         goalDao = GoalDao(this)
 
+        // Initialize spinners
+        setupCategorySpinner()
+        setupCurrencySpinner()
+
         // Set up RecyclerView
         recyclerViewPreviousInvestments.layoutManager = LinearLayoutManager(this)
         previousInvestmentAdapter = PreviousInvestmentAdapter(emptyList(), goalDao)
@@ -105,6 +109,20 @@ class InvestmentEntryActivity : AppCompatActivity() {
             populateFields(editingInvestment!!)
             buttonSaveInvestment.text = "Update Investment"
         }
+    }
+
+    private fun setupCategorySpinner() {
+        val categories = resources.getStringArray(R.array.investment_categories)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerInvestmentCategory.adapter = adapter
+    }
+
+    private fun setupCurrencySpinner() {
+        val currencies = resources.getStringArray(R.array.currencies)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerInvestmentCurrency.adapter = adapter
     }
 
     private fun loadGoals() {

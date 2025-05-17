@@ -10,7 +10,7 @@ class GoalAdapter(private val goals: MutableList<GoalObject>) : RecyclerView.Ada
 
     class GoalViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.textViewGoalName)
-        val targetValueTextView: TextView = itemView.findViewById(R.id.textViewGoalTargetValue)
+        val targetValueTextView: TextView = itemView.findViewById(R.id.textViewTargetValue)
         // Add more TextViews for other goal details if needed
     }
 

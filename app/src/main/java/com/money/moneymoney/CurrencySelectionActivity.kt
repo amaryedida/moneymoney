@@ -10,12 +10,17 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import androidx.core.content.FileProvider
+import android.view.View
+import android.util.Log
 
 class CurrencySelectionActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_CURRENCY = "selected_currency"
     }
+
+    private var selectedCurrency: String? = null
+    private val TAG = "CurrencySelectionActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,16 +39,20 @@ class CurrencySelectionActivity : AppCompatActivity() {
         val buttonExportExpense: Button = findViewById(R.id.button_export_expense)
         val buttonExportInvestment: Button = findViewById(R.id.button_export_investment)
 
-        var selectedCurrency: String? = null
-
         buttonAed.setOnClickListener {
             selectedCurrency = "AED"
             enableSubButtons(buttonIncome, buttonExpense, buttonInvestment, buttonGoal)
+            buttonAed.text = "AED  ✔"
+            buttonInr.text = "INR"
+            Log.d(TAG, "AED selected, selectedCurrency set to: $selectedCurrency")
         }
 
         buttonInr.setOnClickListener {
             selectedCurrency = "INR"
             enableSubButtons(buttonIncome, buttonExpense, buttonInvestment, buttonGoal)
+            buttonInr.text = "INR  ✔"
+            buttonAed.text = "AED"
+            Log.d(TAG, "INR selected, selectedCurrency set to: $selectedCurrency")
         }
 
         bottomNavigationView.setOnItemSelectedListener { item ->
@@ -57,24 +66,28 @@ class CurrencySelectionActivity : AppCompatActivity() {
         }
 
         buttonIncome.setOnClickListener {
+            Log.d(TAG, "Income List clicked, selectedCurrency: $selectedCurrency")
             selectedCurrency?.let { currency ->
                 navigateToReportList(currency, "income")
             } ?: showCurrencyNotSelectedMessage()
         }
 
         buttonExpense.setOnClickListener {
+            Log.d(TAG, "Expense List clicked, selectedCurrency: $selectedCurrency")
             selectedCurrency?.let { currency ->
                 navigateToReportList(currency, "expense")
             } ?: showCurrencyNotSelectedMessage()
         }
 
         buttonInvestment.setOnClickListener {
+            Log.d(TAG, "Investment List clicked, selectedCurrency: $selectedCurrency")
             selectedCurrency?.let { currency ->
                 navigateToReportList(currency, "investment")
             } ?: showCurrencyNotSelectedMessage()
         }
 
         buttonGoal.setOnClickListener {
+            Log.d(TAG, "Goal List clicked, selectedCurrency: $selectedCurrency")
             selectedCurrency?.let { currency ->
                 navigateToReportList(currency, "goal")
             } ?: showCurrencyNotSelectedMessage()
@@ -176,5 +189,18 @@ class CurrencySelectionActivity : AppCompatActivity() {
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         startActivity(Intent.createChooser(intent, "Share CSV"))
         Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun Button.setStyle(styleRes: Int) {
+        val typedArray = context.obtainStyledAttributes(styleRes, intArrayOf(
+            android.R.attr.background,
+            android.R.attr.textColor
+        ))
+        try {
+            background = typedArray.getDrawable(0)
+            setTextColor(typedArray.getColor(1, currentTextColor))
+        } finally {
+            typedArray.recycle()
+        }
     }
 }

@@ -136,7 +136,7 @@ class GoalEntryActivity : AppCompatActivity() {
     private fun loadActiveGoals() {
         val activeGoals = goalDao.getAllActiveGoals()
         goalAdapter.updateGoals(activeGoals)
-        layoutAddGoalForm.visibility = if (activeGoals.isEmpty()) View.VISIBLE else View.GONE
+        layoutAddGoalForm.visibility = View.VISIBLE
     }
 
     private fun showDatePickerDialog() {
