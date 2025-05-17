@@ -6,7 +6,7 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:layout_marginBottom="?attr/actionBarSize"
         android:padding="24dp">
 
@@ -25,21 +25,11 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Goal Name">
+                    android:hint="Creation Date">
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/editTextGoalName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"/>
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Target Value"
-                    android:layout_marginTop="16dp">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/editTextTargetAmount"
-                        android:inputType="numberDecimal"
+                        android:id="@+id/editTextGoalCreationDate"
+                        android:focusable="false"
+                        android:clickable="true"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"/>
                 </com.google.android.material.textfield.TextInputLayout>
@@ -58,12 +48,22 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Creation Date"
+                    android:hint="Goal Name"
                     android:layout_marginTop="16dp">
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/editTextGoalCreationDate"
-                        android:focusable="false"
-                        android:clickable="true"
+                        android:id="@+id/editTextGoalName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Target Value"
+                    android:layout_marginTop="16dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editTextTargetAmount"
+                        android:inputType="numberDecimal"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"/>
                 </com.google.android.material.textfield.TextInputLayout>
