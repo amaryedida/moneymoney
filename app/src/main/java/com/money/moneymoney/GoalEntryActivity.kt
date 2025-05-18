@@ -96,7 +96,7 @@ class GoalEntryActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         goalDao = GoalDao(this)
-        goalAdapter = GoalAdapter(mutableListOf(), isPreviousList = true)
+        goalAdapter = GoalAdapter(mutableListOf())
         recyclerViewGoals.layoutManager = LinearLayoutManager(this)
         recyclerViewGoals.adapter = goalAdapter
     }

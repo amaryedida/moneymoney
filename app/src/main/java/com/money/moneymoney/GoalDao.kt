@@ -68,7 +68,7 @@ class GoalDao(context: Context) {
             arrayOf(status),
             null,
             null,
-            null
+            "$COLUMN_GOAL_CREATION_DATE DESC"  // Sort by creation date in descending order
         )
 
         cursor.use {
