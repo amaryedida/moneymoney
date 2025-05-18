@@ -170,7 +170,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
 
     override fun onEditItem(expense: ExpenseObject) {
         val intent = Intent(this, ExpenseEntryActivity::class.java)
-        intent.putExtra("EXTRA_EXPENSE", expense)
+        intent.putExtra(ExpenseEntryActivity.EXTRA_EXPENSE, expense)
         editExpenseLauncher.launch(intent)
     }
 
