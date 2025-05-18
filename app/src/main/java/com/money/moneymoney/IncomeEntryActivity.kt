@@ -188,6 +188,8 @@ class IncomeEntryActivity : AppCompatActivity() {
         val valueStr = editTextIncomeValue.text.toString()
         val comment = editTextIncomeComment.text.toString()
 
+        Log.d(TAG, "Saving income data: Currency=$currency, Category=$category, Value=$valueStr, Comment=$comment, Date=$selectedDateInMillis")
+
         if (valueStr.isNotEmpty()) {
             val value = valueStr.toDouble()
             if (editingIncome == null) {

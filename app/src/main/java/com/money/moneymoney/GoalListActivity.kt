@@ -25,6 +25,7 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
     private lateinit var editTextEndDate: EditText
     private lateinit var buttonFilter: Button
     private lateinit var buttonClearFilter: Button
+    private var selectedCurrency: String? = null
 
     private val editGoalLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -49,6 +50,14 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
         goalAdapter = GoalListAdapter(emptyList(), this)
         recyclerViewGoals.layoutManager = LinearLayoutManager(this)
         recyclerViewGoals.adapter = goalAdapter
+
+        selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
+        if (selectedCurrency == null) {
+            Log.e("GoalListActivity", "Currency not provided")
+            Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         loadGoals()
 
@@ -92,7 +101,8 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
 
     private fun calculateGoalProgress(): List<GoalWithProgress> {
         val goalsWithProgress = mutableListOf<GoalWithProgress>()
-        val activeGoals = goalDao.getAllActiveGoals()
+        val activeGoals = selectedCurrency?.let { goalDao.getAllActiveGoalsByCurrency(it) } ?: emptyList()
+        Log.d("GoalListActivity", "Retrieved ${activeGoals.size} active goals for currency: $selectedCurrency")
 
         for (goal in activeGoals) {
             val investmentsForGoal = investmentDao.getInvestmentsByGoalId(goal.id)

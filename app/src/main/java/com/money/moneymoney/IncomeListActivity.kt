@@ -40,6 +40,7 @@ class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionLi
         buttonClearFilter = findViewById(R.id.button_clear_filter)
 
         selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
+        Log.d("IncomeListActivity", "Received currency in onCreate: $selectedCurrency")
         if (selectedCurrency == null) {
             Log.e("IncomeListActivity", "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
@@ -84,6 +85,7 @@ class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionLi
 
     private fun loadIncomes() {
         val incomes = incomeDao.getIncomesByCurrency(selectedCurrency!!)
+        Log.d("IncomeListActivity", "Loaded ${incomes.size} incomes for currency: $selectedCurrency")
         incomeAdapter.updateData(incomes)
     }
 

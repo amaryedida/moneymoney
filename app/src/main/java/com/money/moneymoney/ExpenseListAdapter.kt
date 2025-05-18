@@ -1,5 +1,6 @@
 package com.money.moneymoney
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,6 +44,7 @@ class ExpenseListAdapter(private var expenses: List<ExpenseObject>) :
 
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val currentExpense = expenses[position]
+        Log.d("ExpenseListAdapter", "Binding expense: ID=${currentExpense.id}, Currency=${currentExpense.currency}, Category=${currentExpense.category}, Value=${currentExpense.value}, Comment=${currentExpense.comment}, Date=${currentExpense.date}")
         holder.categoryTextView.text = currentExpense.category
         holder.valueTextView.text = String.format(Locale.getDefault(), "%.2f", currentExpense.value)
         holder.currencyTextView.text = currentExpense.currency

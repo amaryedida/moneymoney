@@ -9,9 +9,14 @@ import androidx.recyclerview.widget.RecyclerView
 import java.util.Locale
 import java.text.SimpleDateFormat
 import java.util.Date
+import android.util.Log
 
 class InvestmentListAdapter(private var investments: List<InvestmentObject> = emptyList()) :
     RecyclerView.Adapter<InvestmentListAdapter.InvestmentViewHolder>() {
+
+    companion object {
+        private const val TAG = "InvestmentListAdapter"
+    }
 
     interface OnItemActionListener {
         fun onEditItem(investment: InvestmentObject)
@@ -47,6 +52,7 @@ class InvestmentListAdapter(private var investments: List<InvestmentObject> = em
 
     override fun onBindViewHolder(holder: InvestmentViewHolder, position: Int) {
         val currentInvestment = investments[position]
+        Log.d(TAG, "Binding investment: ID=${currentInvestment.id}, Category=${currentInvestment.category}, Value=${currentInvestment.value}, Currency=${currentInvestment.currency}, Date=${currentInvestment.date}, Comment=${currentInvestment.comment}")
         holder.nameTextView.text = currentInvestment.category
         holder.amountTextView.text = String.format("%.2f", currentInvestment.value)
         holder.dateTextView.text = dateFormatter.format(Date(currentInvestment.date))

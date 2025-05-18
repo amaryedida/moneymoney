@@ -45,6 +45,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
             buttonAed.text = "AED  ✔"
             buttonInr.text = "INR"
             Log.d(TAG, "AED selected, selectedCurrency set to: $selectedCurrency")
+            Log.d(TAG, "Navigating to income list with currency: $selectedCurrency")
         }
 
         buttonInr.setOnClickListener {
@@ -53,6 +54,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
             buttonInr.text = "INR  ✔"
             buttonAed.text = "AED"
             Log.d(TAG, "INR selected, selectedCurrency set to: $selectedCurrency")
+            Log.d(TAG, "Navigating to income list with currency: $selectedCurrency")
         }
 
         bottomNavigationView.setOnItemSelectedListener { item ->

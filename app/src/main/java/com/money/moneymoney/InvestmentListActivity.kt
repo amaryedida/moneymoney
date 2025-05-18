@@ -53,6 +53,7 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
 
     private fun setupCurrency() {
         selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
+        Log.d(TAG, "Received currency in setupCurrency: $selectedCurrency")
         if (selectedCurrency == null) {
             Log.e(TAG, "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
@@ -111,6 +112,7 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
     private fun loadInvestments() {
         try {
             val investments = investmentDao.getInvestmentsByCurrency(selectedCurrency!!)
+            Log.d(TAG, "Loaded ${investments.size} investments for currency: $selectedCurrency")
             investmentAdapter.updateData(investments)
         } catch (e: Exception) {
             Log.e(TAG, "Error loading investments", e)

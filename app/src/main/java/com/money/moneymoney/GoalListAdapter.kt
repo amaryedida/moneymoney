@@ -1,5 +1,6 @@
 package com.money.moneymoney
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,8 @@ import java.util.Locale
 
 class GoalListAdapter(
     private var goals: List<GoalWithProgress>,
-    private val listener: OnItemActionListener
+    private val listener: OnItemActionListener? = null,
+    private val isPreviousList: Boolean = false
 ) :
     RecyclerView.Adapter<GoalListAdapter.GoalViewHolder>() {
 
@@ -42,6 +44,7 @@ class GoalListAdapter(
     override fun onBindViewHolder(holder: GoalViewHolder, position: Int) {
         val currentGoal = goals[position]
         val goal = currentGoal.goal
+        Log.d("GoalListAdapter", "Binding goal: ID=${goal.id}, Name=${goal.name}, TargetValue=${goal.targetValue}, Currency=${goal.currency}, CreationDate=${goal.creationDate}, Status=${goal.status}, AmountInvested=${currentGoal.amountInvested}, PercentageProgress=${currentGoal.percentageProgress}, RemainingAmount=${currentGoal.remainingAmount}")
         holder.nameTextView.text = goal.name
         val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val creationDate = goal.creationDate ?: System.currentTimeMillis()
@@ -51,12 +54,20 @@ class GoalListAdapter(
         holder.percentageTextView.text = "${currentGoal.percentageProgress}%"
         holder.amountInvestedTextView.text = String.format("Invested: %.2f %s", currentGoal.amountInvested, goal.currency)
 
+        if (isPreviousList) {
+            holder.editButton.visibility = View.GONE
+            holder.deleteButton.visibility = View.GONE
+        } else {
+            holder.editButton.visibility = View.VISIBLE
+            holder.deleteButton.visibility = View.VISIBLE
+        }
+
         holder.editButton.setOnClickListener {
-            listener.onEditItem(goal)
+            listener?.onEditItem(goal)
         }
 
         holder.deleteButton.setOnClickListener {
-            listener.onDeleteItem(goal)
+            listener?.onDeleteItem(goal)
         }
     }
 

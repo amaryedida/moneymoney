@@ -187,4 +187,35 @@ class GoalDao(context: Context) {
         }
         return goals
     }
+
+    fun getAllActiveGoalsByCurrency(currency: String): MutableList<GoalObject> {
+        val goals = mutableListOf<GoalObject>()
+        val cursor: Cursor = database.query(
+            TABLE_GOALS,
+            arrayOf(
+                COLUMN_GOAL_ID,
+                COLUMN_GOAL_NAME,
+                COLUMN_GOAL_TARGET_VALUE,
+                COLUMN_GOAL_CURRENCY,
+                COLUMN_GOAL_CREATION_DATE,
+                COLUMN_GOAL_STATUS,
+                COLUMN_GOAL_COMPLETION_DATE
+            ),
+            "$COLUMN_GOAL_STATUS = ? AND $COLUMN_GOAL_CURRENCY = ?",
+            arrayOf(STATUS_ACTIVE, currency),
+            null,
+            null,
+            null
+        )
+
+        cursor.use {
+            if (it.moveToFirst()) {
+                do {
+                    val goal = createGoalFromCursor(it)
+                    goals.add(goal)
+                } while (it.moveToNext())
+            }
+        }
+        return goals
+    }
 }

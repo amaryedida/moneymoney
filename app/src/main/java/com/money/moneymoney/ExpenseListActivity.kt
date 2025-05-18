@@ -49,6 +49,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
         buttonClearFilter = findViewById(R.id.button_clear_filter)
 
         selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
+        Log.d("ExpenseListActivity", "Received currency in onCreate: $selectedCurrency")
         if (selectedCurrency == null) {
             Log.e("ExpenseListActivity", "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
@@ -93,6 +94,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
 
     private fun loadExpenses() {
         val expenses = expenseDao.getExpensesByCurrency(selectedCurrency!!)
+        Log.d("ExpenseListActivity", "Loaded ${expenses.size} expenses for currency: $selectedCurrency")
         expenseAdapter.updateData(expenses)
     }
 
