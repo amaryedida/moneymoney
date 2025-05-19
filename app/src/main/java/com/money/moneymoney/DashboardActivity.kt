@@ -36,6 +36,7 @@ class DashboardActivity : AppCompatActivity() {
 
     private lateinit var buttonViewReports: Button
     private lateinit var fabAdd: FloatingActionButton
+    private lateinit var fabDriveSync: FloatingActionButton
     private lateinit var bottomNavigation: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +50,7 @@ class DashboardActivity : AppCompatActivity() {
             initializeDAOs()
             setupBottomNavigation()
             setupClickListeners()
+            setupDriveSyncFab()
             loadDashboardData()
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate", e)
@@ -68,6 +70,7 @@ class DashboardActivity : AppCompatActivity() {
 
             buttonViewReports = findViewById(R.id.buttonViewReports)
             fabAdd = findViewById(R.id.fabAdd)
+            fabDriveSync = findViewById(R.id.fabDriveSync)
             bottomNavigation = findViewById(R.id.bottomNavigationView)
             Log.d(TAG, "All views initialized successfully")
         } catch (e: Exception) {
@@ -125,6 +128,13 @@ class DashboardActivity : AppCompatActivity() {
                 "View Reports",
                 "Currency Selection"
             )
+        }
+    }
+
+    private fun setupDriveSyncFab() {
+        fabDriveSync.setOnClickListener {
+            val intent = Intent(this, DriveSyncActivity::class.java)
+            startActivity(intent)
         }
     }
 
