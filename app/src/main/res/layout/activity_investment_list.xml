@@ -8,7 +8,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:layout_marginTop="0dp">
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
@@ -53,7 +54,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Clear Filter"
-            style="@style/Widget.Material3.Button"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_marginStart="8dp"/>
     </LinearLayout>
 
@@ -61,8 +62,9 @@
         android:id="@+id/recycler_view_investments"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="?attr/actionBarSize"/>
+        android:layout_marginTop="72dp"
+        android:layout_marginBottom="72dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
