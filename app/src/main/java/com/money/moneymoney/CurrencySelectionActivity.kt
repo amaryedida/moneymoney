@@ -12,6 +12,13 @@ import java.io.OutputStreamWriter
 import androidx.core.content.FileProvider
 import android.view.View
 import android.util.Log
+import android.app.DatePickerDialog
+import android.app.Dialog
+import android.widget.DatePicker
+import android.widget.LinearLayout
+import android.widget.TextView
+import java.text.SimpleDateFormat
+import java.util.*
 
 class CurrencySelectionActivity : AppCompatActivity() {
 
@@ -21,6 +28,9 @@ class CurrencySelectionActivity : AppCompatActivity() {
 
     private var selectedCurrency: String? = null
     private val TAG = "CurrencySelectionActivity"
+    private var fromDate: Calendar = Calendar.getInstance()
+    private var toDate: Calendar = Calendar.getInstance()
+    private var currentExportType: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,13 +106,13 @@ class CurrencySelectionActivity : AppCompatActivity() {
         }
 
         buttonExportIncome.setOnClickListener {
-            exportIncomeListAsCSV()
+            showDateRangeDialog("income")
         }
         buttonExportExpense.setOnClickListener {
-            exportExpenseListAsCSV()
+            showDateRangeDialog("expense")
         }
         buttonExportInvestment.setOnClickListener {
-            exportInvestmentListAsCSV()
+            showDateRangeDialog("investment")
         }
     }
 
@@ -132,14 +142,99 @@ class CurrencySelectionActivity : AppCompatActivity() {
         Toast.makeText(this, "Please select a currency first.", Toast.LENGTH_SHORT).show()
     }
 
+    private fun showDateRangeDialog(exportType: String) {
+        currentExportType = exportType
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.export_date_range)
+        dialog.setTitle("Select Date Range")
+
+        val fromDateText = dialog.findViewById<TextView>(R.id.fromDateText)
+        val toDateText = dialog.findViewById<TextView>(R.id.toDateText)
+        val exportButton = dialog.findViewById<Button>(R.id.exportButton)
+
+        // Initially disable export button
+        exportButton.isEnabled = false
+        fromDateText.text = "Select From Date"
+        toDateText.text = "Select To Date"
+
+        fromDateText.setOnClickListener {
+            showDatePicker(fromDate) { calendar ->
+                fromDate = calendar
+                updateDateText(fromDateText, calendar)
+                validateAndEnableExport(exportButton, fromDateText, toDateText)
+            }
+        }
+
+        toDateText.setOnClickListener {
+            showDatePicker(toDate) { calendar ->
+                toDate = calendar
+                updateDateText(toDateText, calendar)
+                validateAndEnableExport(exportButton, fromDateText, toDateText)
+            }
+        }
+
+        exportButton.setOnClickListener {
+            if (validateDateRange(fromDate, toDate)) {
+                when (exportType) {
+                    "income" -> exportIncomeListAsCSV()
+                    "expense" -> exportExpenseListAsCSV()
+                    "investment" -> exportInvestmentListAsCSV()
+                }
+                dialog.dismiss()
+            } else {
+                Toast.makeText(this, "To date must be after from date", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun validateAndEnableExport(exportButton: Button, fromDateText: TextView, toDateText: TextView) {
+        val isFromDateSelected = fromDateText.text != "Select From Date"
+        val isToDateSelected = toDateText.text != "Select To Date"
+        exportButton.isEnabled = isFromDateSelected && isToDateSelected
+    }
+
+    private fun validateDateRange(fromDate: Calendar, toDate: Calendar): Boolean {
+        return !toDate.before(fromDate)
+    }
+
+    private fun showDatePicker(calendar: Calendar, onDateSelected: (Calendar) -> Unit) {
+        DatePickerDialog(
+            this,
+            { _: DatePicker, year: Int, month: Int, day: Int ->
+                calendar.set(year, month, day)
+                onDateSelected(calendar)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    private fun updateDateText(textView: TextView, calendar: Calendar) {
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        textView.text = dateFormat.format(calendar.time)
+    }
+
+    private fun isDateInRange(date: String, fromDate: Calendar, toDate: Calendar): Boolean {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val transactionDate = dateFormat.parse(date)
+        return transactionDate != null && 
+               !transactionDate.before(fromDate.time) && 
+               !transactionDate.after(toDate.time)
+    }
+
     private fun exportIncomeListAsCSV() {
         try {
             val incomeDao = IncomeDao(this)
             val incomes = incomeDao.getIncomesByCurrency("INR") + incomeDao.getIncomesByCurrency("AED")
+            val filteredIncomes = incomes.filter { isDateInRange(it.date, fromDate, toDate) }
+            
             val file = File(cacheDir, "income_list.csv")
             val writer = OutputStreamWriter(FileOutputStream(file))
             writer.write("ID,Currency,Category,Value,Comment,Date\n")
-            for (income in incomes) {
+            for (income in filteredIncomes) {
                 writer.write("${income.id},${income.currency},${income.category},${income.value},${income.comment ?: ""},${income.date}\n")
             }
             writer.close()
@@ -153,10 +248,12 @@ class CurrencySelectionActivity : AppCompatActivity() {
         try {
             val expenseDao = ExpenseDao(this)
             val expenses = expenseDao.getExpensesByCurrency("INR") + expenseDao.getExpensesByCurrency("AED")
+            val filteredExpenses = expenses.filter { isDateInRange(it.date, fromDate, toDate) }
+            
             val file = File(cacheDir, "expense_list.csv")
             val writer = OutputStreamWriter(FileOutputStream(file))
             writer.write("ID,Currency,Category,Value,Comment,Date\n")
-            for (expense in expenses) {
+            for (expense in filteredExpenses) {
                 writer.write("${expense.id},${expense.currency},${expense.category},${expense.value},${expense.comment ?: ""},${expense.date}\n")
             }
             writer.close()
@@ -170,10 +267,12 @@ class CurrencySelectionActivity : AppCompatActivity() {
         try {
             val investmentDao = InvestmentDao(this)
             val investments = investmentDao.getInvestmentsByCurrency("INR") + investmentDao.getInvestmentsByCurrency("AED")
+            val filteredInvestments = investments.filter { isDateInRange(it.date, fromDate, toDate) }
+            
             val file = File(cacheDir, "investment_list.csv")
             val writer = OutputStreamWriter(FileOutputStream(file))
             writer.write("ID,Currency,Category,Value,Comment,Date,GoalId,GoalName\n")
-            for (investment in investments) {
+            for (investment in filteredInvestments) {
                 writer.write("${investment.id},${investment.currency},${investment.category},${investment.value},${investment.comment ?: ""},${investment.date},${investment.goalId ?: ""},${investment.goalName ?: ""}\n")
             }
             writer.close()
