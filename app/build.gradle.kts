@@ -1,4 +1,4 @@
-plugins {
+            plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.money.moneymoney"
-        minSdk = 24
+        minSdk = 27
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"

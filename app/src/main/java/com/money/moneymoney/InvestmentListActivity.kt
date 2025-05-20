@@ -53,6 +53,7 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
 
     private fun setupCurrency() {
         selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
+        Log.d(TAG, "Received currency in setupCurrency: $selectedCurrency")
         if (selectedCurrency == null) {
             Log.e(TAG, "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
@@ -87,6 +88,12 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
         buttonClearFilter.setOnClickListener {
             clearFilter()
         }
+
+        // Add long press on RecyclerView to add new investment
+        recyclerViewInvestments.setOnLongClickListener {
+            addNewInvestment()
+            true
+        }
     }
 
     private fun setupBottomNavigation() {
@@ -105,6 +112,7 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
     private fun loadInvestments() {
         try {
             val investments = investmentDao.getInvestmentsByCurrency(selectedCurrency!!)
+            Log.d(TAG, "Loaded ${investments.size} investments for currency: $selectedCurrency")
             investmentAdapter.updateData(investments)
         } catch (e: Exception) {
             Log.e(TAG, "Error loading investments", e)
@@ -213,6 +221,17 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
         } catch (e: Exception) {
             Log.e(TAG, "Error deleting investment", e)
             Toast.makeText(this, "Error deleting investment: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun addNewInvestment() {
+        try {
+            val intent = Intent(this, InvestmentEntryActivity::class.java)
+            intent.putExtra(CurrencySelectionActivity.EXTRA_CURRENCY, selectedCurrency)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error starting InvestmentEntryActivity", e)
+            Toast.makeText(this, "Error adding investment: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 }

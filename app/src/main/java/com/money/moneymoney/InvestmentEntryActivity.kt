@@ -1,4 +1,4 @@
-package com.money.moneymoney
+    package com.money.moneymoney
 
 import android.app.DatePickerDialog
 import android.content.Intent
@@ -16,11 +16,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
+import java.util.Date
+import java.text.SimpleDateFormat
 
 class InvestmentEntryActivity : AppCompatActivity() {
 
     companion object {
-        private const val TAG = "InvestmentEntryActivity"
+        private const val TAG = "InvestmentEntryActivity"                                       
     }
 
     private lateinit var editTextInvestmentDate: EditText
@@ -39,6 +41,9 @@ class InvestmentEntryActivity : AppCompatActivity() {
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
     private var goalList: MutableList<String> = mutableListOf("None") // Default "None" option
     private var goalIdMap: MutableMap<String, Long?> = mutableMapOf("None" to null)
+    private var editingInvestment: InvestmentObject? = null
+
+    private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +63,10 @@ class InvestmentEntryActivity : AppCompatActivity() {
 
         investmentDao = InvestmentDao(this)
         goalDao = GoalDao(this)
+
+        // Initialize spinners
+        setupCategorySpinner()
+        setupCurrencySpinner()
 
         // Set up RecyclerView
         recyclerViewPreviousInvestments.layoutManager = LinearLayoutManager(this)
@@ -88,6 +97,32 @@ class InvestmentEntryActivity : AppCompatActivity() {
         // Don't set selectedItemId to avoid automatic navigation
 
         updateDateEditText()
+
+        // Check if editing an existing investment
+        editingInvestment = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("EXTRA_INVESTMENT", InvestmentObject::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("EXTRA_INVESTMENT")
+        }
+        if (editingInvestment != null) {
+            populateFields(editingInvestment!!)
+            buttonSaveInvestment.text = "Update Investment"
+        }
+    }
+
+    private fun setupCategorySpinner() {
+        val categories = resources.getStringArray(R.array.investment_categories)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerInvestmentCategory.adapter = adapter
+    }
+
+    private fun setupCurrencySpinner() {
+        val currencies = resources.getStringArray(R.array.currencies)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerInvestmentCurrency.adapter = adapter
     }
 
     private fun loadGoals() {
@@ -134,6 +169,40 @@ class InvestmentEntryActivity : AppCompatActivity() {
         editTextInvestmentDate.setText(formattedDate)
     }
 
+    private fun populateFields(investment: InvestmentObject) {
+        editTextInvestmentValue.setText(String.format(Locale.getDefault(), "%.2f", investment.value))
+        editTextInvestmentComment.setText(investment.comment)
+        selectedDateInMillis = investment.date
+        editTextInvestmentDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
+
+        // Set category in spinner
+        val categoryAdapter = spinnerInvestmentCategory.adapter
+        if (categoryAdapter is ArrayAdapter<*>) {
+            val position = (0 until categoryAdapter.count).firstOrNull { 
+                categoryAdapter.getItem(it) == investment.category 
+            } ?: 0
+            spinnerInvestmentCategory.setSelection(position)
+        }
+
+        // Set currency in spinner
+        val currencyAdapter = spinnerInvestmentCurrency.adapter
+        if (currencyAdapter is ArrayAdapter<*>) {
+            val currencyPosition = (0 until currencyAdapter.count).firstOrNull {
+                currencyAdapter.getItem(it) == investment.currency
+            } ?: 0
+            spinnerInvestmentCurrency.setSelection(currencyPosition)
+        }
+
+        // Set goal in spinner
+        val goalAdapter = spinnerInvestmentGoal.adapter
+        if (goalAdapter is ArrayAdapter<*>) {
+            val goalPosition = (0 until goalAdapter.count).firstOrNull {
+                goalAdapter.getItem(it) == investment.goalName ?: "None"
+            } ?: 0
+            spinnerInvestmentGoal.setSelection(goalPosition)
+        }
+    }
+
     private fun saveInvestmentData() {
         val currency = spinnerInvestmentCurrency.selectedItem.toString()
         val category = spinnerInvestmentCategory.selectedItem.toString()
@@ -144,15 +213,31 @@ class InvestmentEntryActivity : AppCompatActivity() {
 
         if (valueStr.isNotEmpty()) {
             val value = valueStr.toDouble()
-            val insertedRowId = investmentDao.addInvestment(currency, category, value, comment, selectedDateInMillis, goalId)
-
-            if (insertedRowId > 0) {
-                Toast.makeText(this, "Investment data saved successfully", Toast.LENGTH_SHORT).show()
-                editTextInvestmentValue.text.clear()
-                editTextInvestmentComment.text.clear()
-                loadPreviousInvestments() // Reload after saving
+            if (editingInvestment == null) {
+                // Add new investment
+                val insertedRowId = investmentDao.addInvestment(currency, category, value, comment, selectedDateInMillis, goalId)
+                if (insertedRowId > 0) {
+                    Toast.makeText(this, "Investment data saved successfully", Toast.LENGTH_SHORT).show()
+                    editTextInvestmentValue.text.clear()
+                    editTextInvestmentComment.text.clear()
+                    loadPreviousInvestments()
+                } else {
+                    Toast.makeText(this, "Failed to save investment data", Toast.LENGTH_SHORT).show()
+                }
             } else {
-                Toast.makeText(this, "Failed to save investment data", Toast.LENGTH_SHORT).show()
+                // Update existing investment
+                val updatedInvestment = editingInvestment!!.copy(
+                    currency = currency,
+                    category = category,
+                    value = value,
+                    comment = comment,
+                    date = selectedDateInMillis,
+                    goalId = goalId,
+                    goalName = if (selectedGoalName == "None") null else selectedGoalName
+                )
+                investmentDao.updateInvestment(updatedInvestment)
+                Toast.makeText(this, "Investment updated successfully", Toast.LENGTH_SHORT).show()
+                finish()
             }
         } else {
             Toast.makeText(this, "Please enter the investment value", Toast.LENGTH_SHORT).show()

@@ -15,6 +15,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
+import android.widget.ArrayAdapter
+import java.util.Date
+import java.text.SimpleDateFormat
 
 class IncomeEntryActivity : AppCompatActivity() {
 
@@ -34,6 +37,9 @@ class IncomeEntryActivity : AppCompatActivity() {
     private lateinit var incomeDao: IncomeDao
     private lateinit var previousIncomeAdapter: PreviousIncomeAdapter
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
+    private var editingIncome: IncomeObject? = null
+
+    private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,8 +57,32 @@ class IncomeEntryActivity : AppCompatActivity() {
         textViewPreviousIncome = findViewById(R.id.textViewPreviousIncome)
         recyclerViewPreviousIncome = findViewById(R.id.recyclerViewPreviousIncome)
 
+        // Initialize spinners
+        val currencies = resources.getStringArray(R.array.currencies)
+        val categories = resources.getStringArray(R.array.income_categories)
+        
+        val currencyAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies)
+        currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerIncomeCurrency.adapter = currencyAdapter
+        
+        val categoryAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerIncomeCategory.adapter = categoryAdapter
+
         // Initialize IncomeDao
         incomeDao = IncomeDao(this)
+
+        // Check if editing an existing income
+        editingIncome = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("EXTRA_INCOME", IncomeObject::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("EXTRA_INCOME")
+        }
+        if (editingIncome != null) {
+            populateFields(editingIncome!!)
+            buttonSaveIncome.text = "Update Income"
+        }
 
         // Set up Date Picker
         editTextIncomeDate.setOnClickListener {
@@ -127,25 +157,64 @@ class IncomeEntryActivity : AppCompatActivity() {
         editTextIncomeDate.setText(formattedDate)
     }
 
+    private fun populateFields(income: IncomeObject) {
+        editTextIncomeValue.setText(String.format(Locale.getDefault(), "%.2f", income.value))
+        editTextIncomeComment.setText(income.comment)
+        selectedDateInMillis = income.date
+        editTextIncomeDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
+
+        // Set category in spinner
+        val categoryAdapter = spinnerIncomeCategory.adapter
+        if (categoryAdapter is ArrayAdapter<*>) {
+            val position = (0 until categoryAdapter.count).firstOrNull { 
+                categoryAdapter.getItem(it) == income.category 
+            } ?: 0
+            spinnerIncomeCategory.setSelection(position)
+        }
+
+        // Set currency in spinner
+        val currencyAdapter = spinnerIncomeCurrency.adapter
+        if (currencyAdapter is ArrayAdapter<*>) {
+            val currencyPosition = (0 until currencyAdapter.count).firstOrNull {
+                currencyAdapter.getItem(it) == income.currency
+            } ?: 0
+            spinnerIncomeCurrency.setSelection(currencyPosition)
+        }
+    }
+
     private fun saveIncomeData() {
         val currency = spinnerIncomeCurrency.selectedItem.toString()
         val category = spinnerIncomeCategory.selectedItem.toString()
         val valueStr = editTextIncomeValue.text.toString()
         val comment = editTextIncomeComment.text.toString()
 
+        Log.d(TAG, "Saving income data: Currency=$currency, Category=$category, Value=$valueStr, Comment=$comment, Date=$selectedDateInMillis")
+
         if (valueStr.isNotEmpty()) {
             val value = valueStr.toDouble()
-            val insertedRowId = incomeDao.addIncome(currency, category, value, comment, selectedDateInMillis)
-
-            if (insertedRowId > 0) {
-                Toast.makeText(this, "Income data saved successfully", Toast.LENGTH_SHORT).show()
-                // Clear input fields after saving
-                editTextIncomeValue.text.clear()
-                editTextIncomeComment.text.clear()
-                // Keep the selected date
-                loadPreviousIncomes() // Reload the list after saving
+            if (editingIncome == null) {
+                // Add new income
+                val insertedRowId = incomeDao.addIncome(currency, category, value, comment, selectedDateInMillis)
+                if (insertedRowId > 0) {
+                    Toast.makeText(this, "Income data saved successfully", Toast.LENGTH_SHORT).show()
+                    editTextIncomeValue.text.clear()
+                    editTextIncomeComment.text.clear()
+                    loadPreviousIncomes()
+                } else {
+                    Toast.makeText(this, "Failed to save income data", Toast.LENGTH_SHORT).show()
+                }
             } else {
-                Toast.makeText(this, "Failed to save income data", Toast.LENGTH_SHORT).show()
+                // Update existing income
+                val updatedIncome = editingIncome!!.copy(
+                    currency = currency,
+                    category = category,
+                    value = value,
+                    comment = comment,
+                    date = selectedDateInMillis
+                )
+                incomeDao.updateIncome(updatedIncome)
+                Toast.makeText(this, "Income updated successfully", Toast.LENGTH_SHORT).show()
+                finish()
             }
         } else {
             Toast.makeText(this, "Please enter the income value", Toast.LENGTH_SHORT).show()

@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -29,6 +30,14 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
+    private val editExpenseLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            loadExpenses() // Refresh the list after successful edit
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_expense_list)
@@ -39,7 +48,8 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
         buttonFilter = findViewById(R.id.button_filter)
         buttonClearFilter = findViewById(R.id.button_clear_filter)
 
-        selectedCurrency = intent.getStringExtra("EXTRA_CURRENCY")
+        selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
+        Log.d("ExpenseListActivity", "Received currency in onCreate: $selectedCurrency")
         if (selectedCurrency == null) {
             Log.e("ExpenseListActivity", "Currency not provided")
             Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
@@ -84,6 +94,7 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
 
     private fun loadExpenses() {
         val expenses = expenseDao.getExpensesByCurrency(selectedCurrency!!)
+        Log.d("ExpenseListActivity", "Loaded ${expenses.size} expenses for currency: $selectedCurrency")
         expenseAdapter.updateData(expenses)
     }
 
@@ -152,13 +163,15 @@ class ExpenseListActivity : AppCompatActivity(), ExpenseListAdapter.OnItemAction
 
     override fun onDestroy() {
         super.onDestroy()
-        expenseDao.close()
+        if (::expenseDao.isInitialized) {
+            expenseDao.close()
+        }
     }
 
     override fun onEditItem(expense: ExpenseObject) {
         val intent = Intent(this, ExpenseEntryActivity::class.java)
-        intent.putExtra("EXTRA_EXPENSE", expense)
-        startActivity(intent)
+        intent.putExtra(ExpenseEntryActivity.EXTRA_EXPENSE, expense)
+        editExpenseLauncher.launch(intent)
     }
 
     override fun onDeleteItem(expense: ExpenseObject) {

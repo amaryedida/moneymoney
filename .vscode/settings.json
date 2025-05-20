@@ -2,5 +2,7 @@
     "android-emulator.emulatorPath": "${env:LOCALAPPDATA}\\Android\\Sdk\\emulator\\emulator.exe",
     "android-emulator.androidSdkPath": "${env:LOCALAPPDATA}\\Android\\Sdk",
     "android-emulator.adbPath": "${env:LOCALAPPDATA}\\Android\\Sdk\\platform-tools\\adb.exe",
-    "android-emulator.avdManagerPath": "${env:LOCALAPPDATA}\\Android\\Sdk\\tools\\bin\\avdmanager.bat"
+    "android-emulator.avdManagerPath": "${env:LOCALAPPDATA}\\Android\\Sdk\\tools\\bin\\avdmanager.bat",
+    "IDX.aI.enableInlineCompletion": true,
+    "IDX.aI.enableCodebaseIndexing": true
 } 

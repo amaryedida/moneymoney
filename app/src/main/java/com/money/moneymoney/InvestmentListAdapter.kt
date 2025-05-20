@@ -9,9 +9,14 @@ import androidx.recyclerview.widget.RecyclerView
 import java.util.Locale
 import java.text.SimpleDateFormat
 import java.util.Date
+import android.util.Log
 
 class InvestmentListAdapter(private var investments: List<InvestmentObject> = emptyList()) :
     RecyclerView.Adapter<InvestmentListAdapter.InvestmentViewHolder>() {
+
+    companion object {
+        private const val TAG = "InvestmentListAdapter"
+    }
 
     interface OnItemActionListener {
         fun onEditItem(investment: InvestmentObject)
@@ -21,14 +26,12 @@ class InvestmentListAdapter(private var investments: List<InvestmentObject> = em
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     class InvestmentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val categoryTextView: TextView = itemView.findViewById(R.id.text_view_category)
-        val valueTextView: TextView = itemView.findViewById(R.id.text_view_value)
-        val dateTextView: TextView = itemView.findViewById(R.id.text_view_date)
-        val currencyTextView: TextView = itemView.findViewById(R.id.text_view_currency)
-        val commentTextView: TextView = itemView.findViewById(R.id.text_view_comment)
-        val goalNameTextView: TextView = itemView.findViewById(R.id.textViewGoalName)
-        val editButton: ImageButton = itemView.findViewById(R.id.button_edit)
-        val deleteButton: ImageButton = itemView.findViewById(R.id.button_delete)
+        val nameTextView: TextView = itemView.findViewById(R.id.textViewInvestmentName)
+        val amountTextView: TextView = itemView.findViewById(R.id.textViewInvestmentAmount)
+        val dateTextView: TextView = itemView.findViewById(R.id.textViewInvestmentDate)
+        val typeTextView: TextView = itemView.findViewById(R.id.textViewInvestmentType)
+        val editButton: ImageButton = itemView.findViewById(R.id.buttonEdit)
+        val deleteButton: ImageButton = itemView.findViewById(R.id.buttonDelete)
     }
 
     private var listener: OnItemActionListener? = null
@@ -49,12 +52,11 @@ class InvestmentListAdapter(private var investments: List<InvestmentObject> = em
 
     override fun onBindViewHolder(holder: InvestmentViewHolder, position: Int) {
         val currentInvestment = investments[position]
-        holder.categoryTextView.text = currentInvestment.category
-        holder.goalNameTextView.text = currentInvestment.goalName ?: "No Goal"
-        holder.valueTextView.text = String.format("%.2f", currentInvestment.value)
-        holder.currencyTextView.text = currentInvestment.currency
+        Log.d(TAG, "Binding investment: ID=${currentInvestment.id}, Category=${currentInvestment.category}, Value=${currentInvestment.value}, Currency=${currentInvestment.currency}, Date=${currentInvestment.date}, Comment=${currentInvestment.comment}")
+        holder.nameTextView.text = currentInvestment.category
+        holder.amountTextView.text = String.format("%.2f", currentInvestment.value)
         holder.dateTextView.text = dateFormatter.format(Date(currentInvestment.date))
-        holder.commentTextView.text = currentInvestment.comment
+        holder.typeTextView.text = currentInvestment.currency
 
         holder.editButton.setOnClickListener {
             listener?.onEditItem(currentInvestment)

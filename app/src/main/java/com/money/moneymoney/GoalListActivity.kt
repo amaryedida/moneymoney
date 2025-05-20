@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.util.*
 
 class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListener {
 
@@ -23,6 +25,7 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
     private lateinit var editTextEndDate: EditText
     private lateinit var buttonFilter: Button
     private lateinit var buttonClearFilter: Button
+    private var selectedCurrency: String? = null
 
     private val editGoalLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -48,7 +51,30 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
         recyclerViewGoals.layoutManager = LinearLayoutManager(this)
         recyclerViewGoals.adapter = goalAdapter
 
+        selectedCurrency = intent.getStringExtra(CurrencySelectionActivity.EXTRA_CURRENCY)
+        if (selectedCurrency == null) {
+            Log.e("GoalListActivity", "Currency not provided")
+            Toast.makeText(this, "Currency not selected", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
         loadGoals()
+
+        buttonFilter.setOnClickListener {
+            filterGoals()
+        }
+        buttonClearFilter.setOnClickListener {
+            clearFilter()
+        }
+        editTextStartDate.setOnClickListener {
+            showDatePickerDialog(editTextStartDate)
+        }
+        editTextEndDate.setOnClickListener {
+            showDatePickerDialog(editTextEndDate)
+        }
+
+        setupBottomNavigation()
     }
 
     private fun loadGoals() {
@@ -75,7 +101,8 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
 
     private fun calculateGoalProgress(): List<GoalWithProgress> {
         val goalsWithProgress = mutableListOf<GoalWithProgress>()
-        val activeGoals = goalDao.getAllActiveGoals()
+        val activeGoals = selectedCurrency?.let { goalDao.getAllActiveGoalsByCurrency(it) } ?: emptyList()
+        Log.d("GoalListActivity", "Retrieved ${activeGoals.size} active goals for currency: $selectedCurrency")
 
         for (goal in activeGoals) {
             val investmentsForGoal = investmentDao.getInvestmentsByGoalId(goal.id)
@@ -89,19 +116,68 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
         return goalsWithProgress
     }
 
-    /*
     private fun showDatePickerDialog(editText: EditText) {
-        // Implement date picker if needed for filtering (though goals might not be directly filterable by date)
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val datePickerDialog = DatePickerDialog(
+            this,
+            { _, selectedYear, selectedMonth, selectedDay ->
+                calendar.set(selectedYear, selectedMonth, selectedDay)
+                val selectedDate = calendar.time
+                val dateFormatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                editText.setText(dateFormatter.format(selectedDate))
+            },
+            year,
+            month,
+            day
+        )
+        datePickerDialog.show()
     }
 
     private fun filterGoals() {
-        // Implement filtering logic if needed
+        val startDate = getDateFromEditText(editTextStartDate)
+        val endDate = getDateFromEditText(editTextEndDate)
+        if (startDate != null && endDate != null && startDate.after(endDate)) {
+            Toast.makeText(this, "Start date cannot be after end date", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val goals = goalDao.getActiveGoalsByCreationDateRange(startDate?.time, endDate?.time)
+        updateGoalListWithProgress(goals)
     }
 
     private fun clearFilter() {
-        // Implement clear filter logic if needed
+        editTextStartDate.text.clear()
+        editTextEndDate.text.clear()
+        loadGoals()
     }
-    */
+
+    private fun getDateFromEditText(editText: EditText): java.util.Date? {
+        val dateString = editText.text.toString()
+        return if (dateString.isNotEmpty()) {
+            try {
+                java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).parse(dateString)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show()
+                null
+            }
+        } else {
+            null
+        }
+    }
+
+    private fun updateGoalListWithProgress(goals: List<GoalObject>) {
+        val goalsWithProgress = mutableListOf<GoalWithProgress>()
+        for (goal in goals) {
+            val investmentsForGoal = investmentDao.getInvestmentsByGoalId(goal.id)
+            val amountInvested = investmentsForGoal.sumOf { it.value }
+            val percentageProgress = if (goal.targetValue > 0) (amountInvested / goal.targetValue * 100).toInt() else 0
+            val remainingAmount = goal.targetValue - amountInvested
+            goalsWithProgress.add(GoalWithProgress(goal, amountInvested, percentageProgress, remainingAmount))
+        }
+        goalAdapter.updateData(goalsWithProgress)
+    }
 
     private fun setupBottomNavigation() {
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNavigationView)

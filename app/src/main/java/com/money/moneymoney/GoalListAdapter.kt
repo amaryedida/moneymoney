@@ -1,5 +1,6 @@
 package com.money.moneymoney
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,10 +8,14 @@ import android.widget.ProgressBar
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class GoalListAdapter(
     private var goals: List<GoalWithProgress>,
-    private val listener: OnItemActionListener
+    private val listener: OnItemActionListener? = null,
+    private val isPreviousList: Boolean = false
 ) :
     RecyclerView.Adapter<GoalListAdapter.GoalViewHolder>() {
 
@@ -21,6 +26,7 @@ class GoalListAdapter(
 
     class GoalViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.text_view_goal_name)
+        val creationDateTextView: TextView = itemView.findViewById(R.id.text_view_goal_creation_date)
         val targetValueTextView: TextView = itemView.findViewById(R.id.text_view_target_value)
         val progressBar: ProgressBar = itemView.findViewById(R.id.progress_bar_goal)
         val percentageTextView: TextView = itemView.findViewById(R.id.text_view_percentage)
@@ -38,18 +44,30 @@ class GoalListAdapter(
     override fun onBindViewHolder(holder: GoalViewHolder, position: Int) {
         val currentGoal = goals[position]
         val goal = currentGoal.goal
+        Log.d("GoalListAdapter", "Binding goal: ID=${goal.id}, Name=${goal.name}, TargetValue=${goal.targetValue}, Currency=${goal.currency}, CreationDate=${goal.creationDate}, Status=${goal.status}, AmountInvested=${currentGoal.amountInvested}, PercentageProgress=${currentGoal.percentageProgress}, RemainingAmount=${currentGoal.remainingAmount}")
         holder.nameTextView.text = goal.name
+        val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val creationDate = goal.creationDate ?: System.currentTimeMillis()
+        holder.creationDateTextView.text = "Created: " + dateFormatter.format(Date(creationDate))
         holder.targetValueTextView.text = String.format("%.2f %s", goal.targetValue, goal.currency)
         holder.progressBar.progress = currentGoal.percentageProgress
         holder.percentageTextView.text = "${currentGoal.percentageProgress}%"
-        holder.amountInvestedTextView.text = String.format("%.2f %s", currentGoal.amountInvested, goal.currency)
+        holder.amountInvestedTextView.text = String.format("Invested: %.2f %s", currentGoal.amountInvested, goal.currency)
+
+        if (isPreviousList) {
+            holder.editButton.visibility = View.GONE
+            holder.deleteButton.visibility = View.GONE
+        } else {
+            holder.editButton.visibility = View.VISIBLE
+            holder.deleteButton.visibility = View.VISIBLE
+        }
 
         holder.editButton.setOnClickListener {
-            listener.onEditItem(goal)
+            listener?.onEditItem(goal)
         }
 
         holder.deleteButton.setOnClickListener {
-            listener.onDeleteItem(goal)
+            listener?.onDeleteItem(goal)
         }
     }
 

@@ -29,10 +29,11 @@ class AndroidManifestTest {
             assertEquals(1, activityInfo.launchMode) // LAUNCH_SINGLE_TOP
             assertEquals(R.style.Theme_MoneyMoney, activityInfo.theme)
 
-            val intentFilter = activityInfo.intentFilters?.find {
-                it.hasAction(Intent.ACTION_MAIN) && it.hasCategory(Intent.CATEGORY_LAUNCHER)
-            }
-            assertNotNull(intentFilter)
+            val mainIntent = Intent(Intent.ACTION_MAIN, null)
+            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+            val resolveInfos = packageManager.queryIntentActivities(mainIntent, 0)
+            val isLauncher = resolveInfos.any { it.activityInfo.name == DashboardActivity::class.java.name }
+            assertTrue(isLauncher)
         } catch (e: PackageManager.NameNotFoundException) {
             fail("DashboardActivity not found in manifest")
         }

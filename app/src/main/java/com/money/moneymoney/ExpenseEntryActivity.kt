@@ -137,23 +137,14 @@ class ExpenseEntryActivity : AppCompatActivity() {
     }
 
     private fun setupCategorySpinner() {
-        val categories = arrayOf(
-            "Food",
-            "Transportation",
-            "Entertainment",
-            "Shopping",
-            "Bills",
-            "Healthcare",
-            "Education",
-            "Other"
-        )
+        val categories = resources.getStringArray(R.array.expense_categories)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerExpenseCategory.adapter = adapter
     }
 
     private fun setupCurrencySpinner() {
-        val currencies = arrayOf("INR", "AED")
+        val currencies = resources.getStringArray(R.array.currencies)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerExpenseCurrency.adapter = adapter
@@ -166,8 +157,8 @@ class ExpenseEntryActivity : AppCompatActivity() {
         editTextExpenseDate.setText(dateFormatter.format(Date(selectedDateInMillis)))
 
         // Set category in spinner
-        val categoryAdapter = spinnerExpenseCategory.adapter as? ArrayAdapter<String>
-        if (categoryAdapter != null) {
+        val categoryAdapter = spinnerExpenseCategory.adapter
+        if (categoryAdapter is ArrayAdapter<*>) {
             val position = (0 until categoryAdapter.count).firstOrNull { 
                 categoryAdapter.getItem(it) == expense.category 
             } ?: 0
@@ -175,8 +166,8 @@ class ExpenseEntryActivity : AppCompatActivity() {
         }
 
         // Set currency in spinner
-        val currencyAdapter = spinnerExpenseCurrency.adapter as? ArrayAdapter<String>
-        if (currencyAdapter != null) {
+        val currencyAdapter = spinnerExpenseCurrency.adapter
+        if (currencyAdapter is ArrayAdapter<*>) {
             val currencyPosition = (0 until currencyAdapter.count).firstOrNull {
                 currencyAdapter.getItem(it) == expense.currency
             } ?: 0
@@ -202,38 +193,70 @@ class ExpenseEntryActivity : AppCompatActivity() {
     }
 
     private fun saveExpense() {
-        val valueStr = editTextExpenseValue.text.toString()
-        if (valueStr.isEmpty()) {
-            Toast.makeText(this, "Please enter a value", Toast.LENGTH_SHORT).show()
-            return
+        try {
+            val valueStr = editTextExpenseValue.text.toString()
+            if (valueStr.isEmpty()) {
+                Toast.makeText(this, "Please enter a value", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val value = valueStr.toDoubleOrNull()
+            if (value == null) {
+                Toast.makeText(this, "Please enter a valid number", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            if (value <= 0) {
+                Toast.makeText(this, "Value must be greater than 0", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val category = spinnerExpenseCategory.selectedItem.toString()
+            val currency = spinnerExpenseCurrency.selectedItem.toString()
+            val comment = editTextExpenseComment.text.toString()
+
+            if (editingExpense == null) {
+                // Add new expense
+                val newExpense = ExpenseObject(
+                    id = 0,
+                    currency = currency,
+                    category = category,
+                    value = value,
+                    comment = if (comment.isEmpty()) null else comment,
+                    date = selectedDateInMillis
+                )
+                val insertedRowId = expenseDao.addExpense(newExpense)
+                if (insertedRowId > 0) {
+                    Toast.makeText(this, "Expense saved successfully", Toast.LENGTH_SHORT).show()
+                    editTextExpenseValue.text.clear()
+                    editTextExpenseComment.text.clear()
+                    loadPreviousExpenses()
+                } else {
+                    Toast.makeText(this, "Failed to save expense", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                // Update existing expense
+                val updatedExpense = editingExpense!!.copy(
+                    currency = currency,
+                    category = category,
+                    value = value,
+                    comment = if (comment.isEmpty()) null else comment,
+                    date = selectedDateInMillis
+                )
+                try {
+                    expenseDao.updateExpense(updatedExpense)
+                    Toast.makeText(this, "Expense updated successfully", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
+                    finish()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error updating expense", e)
+                    Toast.makeText(this, "Failed to update expense: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving expense", e)
+            Toast.makeText(this, "An error occurred: ${e.message}", Toast.LENGTH_SHORT).show()
         }
-
-        val value = valueStr.toDoubleOrNull()
-        if (value == null) {
-            Toast.makeText(this, "Please enter a valid number", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val category = spinnerExpenseCategory.selectedItem.toString()
-        val currency = spinnerExpenseCurrency.selectedItem.toString()
-        val comment = editTextExpenseComment.text.toString()
-
-        val expense = ExpenseObject(
-            id = editingExpense?.id ?: 0,
-            currency = currency,
-            category = category,
-            value = value,
-            comment = if (comment.isEmpty()) null else comment,
-            date = selectedDateInMillis
-        )
-
-        if (editingExpense == null) {
-            expenseDao.addExpense(expense)
-        } else {
-            expenseDao.updateExpense(expense)
-        }
-
-        finish()
     }
 
     private fun loadPreviousExpenses() {

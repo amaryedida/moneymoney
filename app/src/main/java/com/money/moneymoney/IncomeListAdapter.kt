@@ -21,13 +21,12 @@ class IncomeListAdapter(private var incomes: List<IncomeObject>) :
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     class IncomeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val categoryTextView: TextView = itemView.findViewById(R.id.text_view_category)
-        val valueTextView: TextView = itemView.findViewById(R.id.text_view_value)
-        val dateTextView: TextView = itemView.findViewById(R.id.text_view_date)
-        val currencyTextView: TextView = itemView.findViewById(R.id.text_view_currency)
-        val commentTextView: TextView = itemView.findViewById(R.id.text_view_comment)
-        val editButton: ImageButton = itemView.findViewById(R.id.button_edit)
-        val deleteButton: ImageButton = itemView.findViewById(R.id.button_delete)
+        val categoryTextView: TextView = itemView.findViewById(R.id.textViewIncomeCategory)
+        val valueTextView: TextView = itemView.findViewById(R.id.textViewIncomeAmount)
+        val dateTextView: TextView = itemView.findViewById(R.id.textViewIncomeDate)
+        val commentTextView: TextView = itemView.findViewById(R.id.textViewIncomeComment)
+        val editButton: ImageButton = itemView.findViewById(R.id.buttonEdit)
+        val deleteButton: ImageButton = itemView.findViewById(R.id.buttonDelete)
     }
 
     private var listener: OnItemActionListener? = null
@@ -50,7 +49,6 @@ class IncomeListAdapter(private var incomes: List<IncomeObject>) :
         val currentIncome = incomes[position]
         holder.categoryTextView.text = currentIncome.category
         holder.valueTextView.text = String.format("%.2f", currentIncome.value) // Format to 2 decimal places
-        holder.currencyTextView.text = currentIncome.currency
         holder.dateTextView.text = dateFormatter.format(Date(currentIncome.date))
         holder.commentTextView.text = currentIncome.comment
 
