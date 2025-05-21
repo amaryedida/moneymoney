@@ -68,12 +68,14 @@ class DriveSyncActivity : AppCompatActivity() {
             }
             setupDriveService()
             CoroutineScope(Dispatchers.IO).launch {
+                createBackupFile(this@DriveSyncActivity) // Always create backup before upload
                 val result = uploadFileToDrive()
                 runOnUiThread {
                     Toast.makeText(this@DriveSyncActivity, result, Toast.LENGTH_SHORT).show()
                 }
             }
         }
+
         buttonDownloadFromDrive.setOnClickListener {
             if (signedInAccount == null) {
                 Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show()
@@ -128,15 +130,48 @@ class DriveSyncActivity : AppCompatActivity() {
 
     private fun uploadFileToDrive(): String {
         return try {
-            // Example: Upload a local file named "backup.db" from app files dir
+            val folderName = "MoneyMoney"
+            // 1. Check if folder exists, else create it
+            val folderList = driveService?.files()?.list()
+                ?.setQ("mimeType='application/vnd.google-apps.folder' and name='$folderName' and trashed=false")
+                ?.setSpaces("drive")
+                ?.execute()
+            val folderId = if (folderList != null && folderList.files.isNotEmpty()) {
+                folderList.files[0].id
+            } else {
+                // Create folder
+                val folderMetadata = DriveFile()
+                folderMetadata.name = folderName
+                folderMetadata.mimeType = "application/vnd.google-apps.folder"
+                val folder = driveService?.files()?.create(folderMetadata)?.setFields("id")?.execute()
+                folder?.id
+            }
+            if (folderId == null) return "Failed to create/find Drive folder"
+
+            // 2. Check if backup.db exists in folder
+            val fileList = driveService?.files()?.list()
+                ?.setQ("name='backup.db' and '$folderId' in parents and trashed=false")
+                ?.setSpaces("drive")
+                ?.execute()
             val filePath = getFileStreamPath("backup.db")
             if (!filePath.exists()) return "Backup file not found"
             val fileContent = FileInputStream(filePath).readBytes()
-            val driveFile = DriveFile()
-            driveFile.name = "backup.db"
             val contentStream = ByteArrayContent.fromString("application/octet-stream", String(fileContent))
-            val createdFile = driveService?.files()?.create(driveFile, contentStream)?.setFields("id")?.execute()
-            if (createdFile != null) "Upload successful: ${createdFile.id}" else "Upload failed"
+            if (fileList != null && fileList.files.isNotEmpty()) {
+                // File exists, update it
+                val fileId = fileList.files[0].id
+                val driveFile = DriveFile()
+                driveFile.name = "backup.db"
+                val updatedFile = driveService?.files()?.update(fileId, driveFile, contentStream)?.setFields("id")?.execute()
+                if (updatedFile != null) "Upload (replace) successful: ${updatedFile.id}" else "Upload failed"
+            } else {
+                // File does not exist, create it
+                val driveFile = DriveFile()
+                driveFile.name = "backup.db"
+                driveFile.parents = listOf(folderId)
+                val createdFile = driveService?.files()?.create(driveFile, contentStream)?.setFields("id")?.execute()
+                if (createdFile != null) "Upload successful: ${createdFile.id}" else "Upload failed"
+            }
         } catch (e: Exception) {
             Log.e("DriveSync", "Upload error", e)
             "Upload error: ${e.localizedMessage}"
@@ -145,9 +180,23 @@ class DriveSyncActivity : AppCompatActivity() {
 
     private fun downloadFileFromDrive(): String {
         return try {
-            // Example: Download the first file named "backup.db" from Drive
-            val result = driveService?.files()?.list()?.setQ("name='backup.db'")?.setSpaces("drive")?.execute()
-            val file = result?.files?.firstOrNull() ?: return "No backup found on Drive"
+            val folderName = "MoneyMoney"
+            // 1. Find the MoneyMoney folder
+            val folderList = driveService?.files()?.list()
+                ?.setQ("mimeType='application/vnd.google-apps.folder' and name='$folderName' and trashed=false")
+                ?.setSpaces("drive")
+                ?.execute()
+            val folderId = if (folderList != null && folderList.files.isNotEmpty()) {
+                folderList.files[0].id
+            } else {
+                return "No MoneyMoney folder found on Drive"
+            }
+            // 2. Find backup.db in the folder
+            val fileList = driveService?.files()?.list()
+                ?.setQ("name='backup.db' and '$folderId' in parents and trashed=false")
+                ?.setSpaces("drive")
+                ?.execute()
+            val file = fileList?.files?.firstOrNull() ?: return "No backup found in MoneyMoney folder"
             val output = ByteArrayOutputStream()
             driveService?.files()?.get(file.id)?.executeMediaAndDownloadTo(output)
             val filePath = getFileStreamPath("backup.db")
@@ -156,6 +205,20 @@ class DriveSyncActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e("DriveSync", "Download error", e)
             "Download error: ${e.localizedMessage}"
+        }
+    }
+
+    private fun createBackupFile(context: android.content.Context) {
+        try {
+            val dbPath = context.getDatabasePath("MoneyMoney.db")
+            val backupPath = context.getFileStreamPath("backup.db")
+            java.io.FileInputStream(dbPath).use { input ->
+                java.io.FileOutputStream(backupPath).use { output ->
+                    input.copyTo(output)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DriveSync", "Backup creation failed", e)
         }
     }
 }
