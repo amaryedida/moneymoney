@@ -1,6 +1,7 @@
 package com.money.moneymoney
 
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
@@ -18,7 +19,6 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.ByteArrayContent
 import com.google.api.client.json.gson.GsonFactory
@@ -34,7 +34,6 @@ class DriveSyncActivity : AppCompatActivity() {
     private lateinit var buttonDownloadFromDrive: Button
     private lateinit var checkboxAutoSyncWifi: CheckBox
     private lateinit var googleSignInClient: GoogleSignInClient
-    private val RC_SIGN_IN = 9001
     private var signedInAccount: GoogleSignInAccount? = null
     private var driveService: Drive? = null
 
@@ -47,6 +46,17 @@ class DriveSyncActivity : AppCompatActivity() {
         buttonDownloadFromDrive = findViewById(R.id.buttonDownloadFromDrive)
         checkboxAutoSyncWifi = findViewById(R.id.checkboxAutoSyncWifi)
 
+        // Register for the Activity Result for Google Sign-In
+        val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                handleSignInResult(task)
+            } else {
+                // Handle sign-in failure or cancellation if needed
+                Toast.makeText(this, "Sign-in cancelled or failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         // Configure sign-in to request the user's ID, email address, and Drive file scope
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
@@ -58,7 +68,7 @@ class DriveSyncActivity : AppCompatActivity() {
 
         buttonGoogleSignIn.setOnClickListener {
             val signInIntent = googleSignInClient.signInIntent
-            startActivityForResult(signInIntent, RC_SIGN_IN)
+            signInLauncher.launch(signInIntent)
         }
 
         buttonSyncToDrive.setOnClickListener {
@@ -95,14 +105,6 @@ class DriveSyncActivity : AppCompatActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == RC_SIGN_IN) {
-            val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(data)
-            handleSignInResult(task)
-        }
-    }
-
     private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
         try {
             val account = completedTask.getResult(ApiException::class.java)
@@ -121,7 +123,7 @@ class DriveSyncActivity : AppCompatActivity() {
             )
             credential.selectedAccount = signedInAccount!!.account
             driveService = Drive.Builder(
-                AndroidHttp.newCompatibleTransport(),
+                com.google.android.gms.net.AndroidHttp.newCompatibleTransport(),
                 GsonFactory.getDefaultInstance(),
                 credential
             ).setApplicationName(getString(R.string.app_name)).build()
