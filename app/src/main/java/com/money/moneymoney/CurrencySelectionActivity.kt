@@ -229,7 +229,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
         try {
             val incomeDao = IncomeDao(this)
             val incomes = incomeDao.getIncomesByCurrency("INR") + incomeDao.getIncomesByCurrency("AED")
-            val filteredIncomes = incomes.filter { isDateInRange(it.date, fromDate, toDate) }
+            val filteredIncomes = incomes.filter { isDateInRange(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.date)), fromDate, toDate) }
             
             val file = File(cacheDir, "income_list.csv")
             val writer = OutputStreamWriter(FileOutputStream(file))
@@ -248,7 +248,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
         try {
             val expenseDao = ExpenseDao(this)
             val expenses = expenseDao.getExpensesByCurrency("INR") + expenseDao.getExpensesByCurrency("AED")
-            val filteredExpenses = expenses.filter { isDateInRange(it.date, fromDate, toDate) }
+            val filteredExpenses = expenses.filter { isDateInRange(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.date)), fromDate, toDate) }
             
             val file = File(cacheDir, "expense_list.csv")
             val writer = OutputStreamWriter(FileOutputStream(file))
@@ -267,7 +267,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
         try {
             val investmentDao = InvestmentDao(this)
             val investments = investmentDao.getInvestmentsByCurrency("INR") + investmentDao.getInvestmentsByCurrency("AED")
-            val filteredInvestments = investments.filter { isDateInRange(it.date, fromDate, toDate) }
+            val filteredInvestments = investments.filter { isDateInRange(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.date)), fromDate, toDate) }
             
             val file = File(cacheDir, "investment_list.csv")
             val writer = OutputStreamWriter(FileOutputStream(file))
