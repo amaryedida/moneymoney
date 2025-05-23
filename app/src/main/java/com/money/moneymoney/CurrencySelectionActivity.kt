@@ -235,7 +235,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
             val writer = OutputStreamWriter(FileOutputStream(file))
             writer.write("ID,Currency,Category,Value,Comment,Date\n")
             for (income in filteredIncomes) {
-                writer.write("${income.id.toString()},${income.currency},${income.category},\"${income.value}\",${income.comment ?: ""},${income.date}\n")
+                writer.write("${income.id.toString()},${income.currency},${income.category},\"${income.value.toString()}\",${income.comment ?: ""},${income.date}\n")
             }
             writer.close()
             shareCSVFile(file, "Income List exported successfully!")
@@ -254,7 +254,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
             val writer = OutputStreamWriter(FileOutputStream(file))
             writer.write("ID,Currency,Category,Value,Comment,Date\n")
             for (expense in filteredExpenses) {
-                writer.write("${expense.id.toString()},${expense.currency},${expense.category},\"${expense.value}\",${expense.comment ?: ""},${expense.date}\n")
+                writer.write("${expense.id.toString()},${expense.currency},${expense.category},\"${expense.value.toString()}\",${expense.comment ?: ""},${expense.date}\n")
             }
             writer.close()
             shareCSVFile(file, "Expense List exported successfully!")
@@ -273,7 +273,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
             val writer = OutputStreamWriter(FileOutputStream(file))
             writer.write("ID,Currency,Category,Value,Comment,Date,GoalId,GoalName\n")
             for (investment in filteredInvestments) {
-                writer.write("${investment.id.toString()},${investment.currency},${investment.category},\"${investment.value}\",${investment.comment ?: ""},${investment.date},${investment.goalId?.toString() ?: ""},${investment.goalName ?: ""}\n")
+                writer.write("${investment.id.toString()},${investment.currency},${investment.category},\"${investment.value.toString()}\",${investment.comment ?: ""},${investment.date},${investment.goalId?.toString() ?: ""},${investment.goalName ?: ""}\n")
             }
             writer.close()
             shareCSVFile(file, "Investment List exported successfully!")
