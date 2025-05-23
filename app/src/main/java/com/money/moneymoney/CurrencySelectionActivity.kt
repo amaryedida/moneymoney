@@ -283,7 +283,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
     }
 
     private fun shareCSVFile(file: File, successMessage: String) {
-        val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+        val uri = FileProvider.getUriForFile(this, "$packageName.provider", file)
         val intent = Intent(Intent.ACTION_SEND)
         intent.type = "text/csv"
         intent.putExtra(Intent.EXTRA_STREAM, uri)
