@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.ByteArrayContent
+import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.File as DriveFile
@@ -123,7 +124,7 @@ class DriveSyncActivity : AppCompatActivity() {
             )
             credential.selectedAccount = signedInAccount!!.account
             driveService = Drive.Builder(
-                com.google.android.gms.net.AndroidHttp.newCompatibleTransport(),
+                NetHttpTransport(),
                 GsonFactory.getDefaultInstance(),
                 credential
             ).setApplicationName(getString(R.string.app_name)).build()

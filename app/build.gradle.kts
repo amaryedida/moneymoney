@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.money.moneymoney"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.money.moneymoney"
         minSdk = 27
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -104,6 +104,8 @@ configurations.all {
         force("com.google.api-client:google-api-client-android:2.8.0")
         force("com.google.apis:google-api-services-drive:v3-rev20250511-2.0.0")
         force("com.google.http-client:google-http-client-android:1.43.3")
+        force("com.google.oauth-client:google-oauth-client:1.39.0")
+        force("com.google.api-client:google-api-client:2.8.0")
     }
 }
 
@@ -136,12 +138,18 @@ dependencies {
         exclude(group = "com.google.guava", module = "guava")
         exclude(group = "org.apache.httpcomponents", module = "httpclient")
     }
-    implementation("com.google.apis:google-api-services-drive:v3-rev20230822-2.0.0") {
+    implementation("com.google.apis:google-api-services-drive:v3-rev20250511-2.0.0") {
         exclude(group = "com.google.guava", module = "guava")
     }
     implementation("com.google.http-client:google-http-client-android:1.43.3") {
         exclude(group = "com.google.guava", module = "guava")
         exclude(group = "org.apache.httpcomponents", module = "httpclient")
+    }
+    implementation("com.google.oauth-client:google-oauth-client:1.39.0") {
+        exclude(group = "com.google.guava", module = "guava")
+    }
+    implementation("com.google.api-client:google-api-client:2.8.0") {
+        exclude(group = "com.google.guava", module = "guava")
     }
     
     // Add explicit guava dependency to resolve conflicts
