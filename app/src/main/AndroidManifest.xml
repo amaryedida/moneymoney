@@ -96,6 +96,13 @@
             android:theme="@style/Theme.MoneyMoney">
         </activity>
 
+        <activity
+            android:name=".DriveSyncActivity"
+            android:exported="false"
+            android:label="Drive Sync"
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

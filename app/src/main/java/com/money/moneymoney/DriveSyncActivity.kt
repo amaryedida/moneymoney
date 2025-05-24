@@ -2,6 +2,7 @@ package com.money.moneymoney
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
@@ -27,15 +28,18 @@ import kotlinx.coroutines.launch
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.ByteArrayOutputStream
+import android.widget.TextView
 
 class DriveSyncActivity : AppCompatActivity() {
     private lateinit var buttonGoogleSignIn: SignInButton
     private lateinit var buttonSyncToDrive: Button
     private lateinit var buttonDownloadFromDrive: Button
     private lateinit var checkboxAutoSyncWifi: CheckBox
+    private lateinit var buttonSignOut: Button
     private lateinit var googleSignInClient: GoogleSignInClient
     private var signedInAccount: GoogleSignInAccount? = null
     private var driveService: Drive? = null
+    private lateinit var textViewUserEmail: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +49,13 @@ class DriveSyncActivity : AppCompatActivity() {
         buttonSyncToDrive = findViewById(R.id.buttonSyncToDrive)
         buttonDownloadFromDrive = findViewById(R.id.buttonDownloadFromDrive)
         checkboxAutoSyncWifi = findViewById(R.id.checkboxAutoSyncWifi)
+        buttonSignOut = findViewById(R.id.buttonSignOut)
+        buttonSignOut.visibility = View.GONE // Hide by default
+        textViewUserEmail = findViewById(R.id.textViewUserEmail)
+
+        // Disable Drive sync buttons until signed in
+        buttonSyncToDrive.isEnabled = false
+        buttonDownloadFromDrive.isEnabled = false
 
         // Register for the Activity Result for Google Sign-In
         val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -97,9 +108,32 @@ class DriveSyncActivity : AppCompatActivity() {
             }
         }
 
+        buttonSignOut.setOnClickListener {
+            googleSignInClient.signOut().addOnCompleteListener {
+                signedInAccount = null
+                Toast.makeText(this, "Signed out", Toast.LENGTH_SHORT).show()
+                buttonGoogleSignIn.visibility = View.VISIBLE
+                buttonSignOut.visibility = View.GONE
+                buttonSyncToDrive.isEnabled = false
+                buttonDownloadFromDrive.isEnabled = false
+                textViewUserEmail.text = ""
+            }
+        }
+
         checkboxAutoSyncWifi.setOnCheckedChangeListener { _, isChecked ->
             // TODO: Save auto-sync over WiFi preference
             Toast.makeText(this, "Auto Sync over WiFi: $isChecked", Toast.LENGTH_SHORT).show()
+        }
+
+        // Auto sign-in if user is already signed in
+        val lastSignedInAccount = GoogleSignIn.getLastSignedInAccount(this)
+        if (lastSignedInAccount != null) {
+            signedInAccount = lastSignedInAccount
+            buttonGoogleSignIn.visibility = View.GONE
+            buttonSignOut.visibility = View.VISIBLE
+            buttonSyncToDrive.isEnabled = true
+            buttonDownloadFromDrive.isEnabled = true
+            textViewUserEmail.text = lastSignedInAccount.email ?: ""
         }
     }
 
@@ -108,6 +142,11 @@ class DriveSyncActivity : AppCompatActivity() {
             val account = completedTask.getResult(ApiException::class.java)
             signedInAccount = account
             Toast.makeText(this, "Signed in as: ${account?.email}", Toast.LENGTH_SHORT).show()
+            buttonGoogleSignIn.visibility = View.GONE
+            buttonSignOut.visibility = View.VISIBLE
+            buttonSyncToDrive.isEnabled = true
+            buttonDownloadFromDrive.isEnabled = true
+            textViewUserEmail.text = account?.email ?: ""
         } catch (e: ApiException) {
             Toast.makeText(this, "Sign-in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
         }
