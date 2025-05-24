@@ -154,4 +154,8 @@ dependencies {
     
     // Add explicit guava dependency to resolve conflicts
     implementation("com.google.guava:guava:32.1.3-android")
+    
+    // Google Identity Services
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 }

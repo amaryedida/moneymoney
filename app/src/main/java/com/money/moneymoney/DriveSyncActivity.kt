@@ -1,30 +1,29 @@
 package com.money.moneymoney
 
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
+import android.util.Log
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.common.SignInButton
-import com.money.moneymoney.R
-import android.content.Intent
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.Task
-import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.ByteArrayContent
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.File as DriveFile
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.ByteArrayOutputStream
@@ -53,7 +52,6 @@ class DriveSyncActivity : AppCompatActivity() {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 handleSignInResult(task)
             } else {
-                // Handle sign-in failure or cancellation if needed
                 Toast.makeText(this, "Sign-in cancelled or failed", Toast.LENGTH_SHORT).show()
             }
         }
@@ -61,9 +59,7 @@ class DriveSyncActivity : AppCompatActivity() {
         // Configure sign-in to request the user's ID, email address, and Drive file scope
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .requestScopes(
-                com.google.android.gms.common.api.Scope("https://www.googleapis.com/auth/drive.file")
-            )
+            .requestScopes(Scope("https://www.googleapis.com/auth/drive.file"))
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
@@ -79,7 +75,7 @@ class DriveSyncActivity : AppCompatActivity() {
             }
             setupDriveService()
             CoroutineScope(Dispatchers.IO).launch {
-                createBackupFile(this@DriveSyncActivity) // Always create backup before upload
+                createBackupFile(this@DriveSyncActivity)
                 val result = uploadFileToDrive()
                 runOnUiThread {
                     Toast.makeText(this@DriveSyncActivity, result, Toast.LENGTH_SHORT).show()
@@ -100,6 +96,7 @@ class DriveSyncActivity : AppCompatActivity() {
                 }
             }
         }
+
         checkboxAutoSyncWifi.setOnCheckedChangeListener { _, isChecked ->
             // TODO: Save auto-sync over WiFi preference
             Toast.makeText(this, "Auto Sync over WiFi: $isChecked", Toast.LENGTH_SHORT).show()
@@ -111,7 +108,6 @@ class DriveSyncActivity : AppCompatActivity() {
             val account = completedTask.getResult(ApiException::class.java)
             signedInAccount = account
             Toast.makeText(this, "Signed in as: ${account?.email}", Toast.LENGTH_SHORT).show()
-            // TODO: Enable Drive sync buttons
         } catch (e: ApiException) {
             Toast.makeText(this, "Sign-in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
         }
@@ -215,7 +211,7 @@ class DriveSyncActivity : AppCompatActivity() {
         try {
             val dbPath = context.getDatabasePath("MoneyMoney.db")
             val backupPath = context.getFileStreamPath("backup.db")
-            java.io.FileInputStream(dbPath).use { input ->
+                java.io.FileInputStream(dbPath).use { input ->
                 java.io.FileOutputStream(backupPath).use { output ->
                     input.copyTo(output)
                 }
