@@ -29,38 +29,33 @@
             android:name=".CurrencySelectionActivity"
             android:exported="false"
             android:label="Select Currency"
-            android:parentActivityName=".DashboardActivity">
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney">
         </activity>
 
         <activity
             android:name=".ExpenseListActivity"
             android:exported="false"
             android:label="Expense List"
-            android:parentActivityName=".DashboardActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".DashboardActivity" />
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney">
         </activity>
         
         <activity
             android:name=".IncomeListActivity"
             android:exported="false"
             android:label="Income List"
-            android:parentActivityName=".DashboardActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".DashboardActivity" />
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney">
         </activity>
 
         <activity
             android:name=".InvestmentListActivity"
             android:exported="false"
             android:label="Investment List"
-            android:parentActivityName=".DashboardActivity">
-            <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value=".DashboardActivity"/>
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney">
         </activity>
-
 
         <activity
             android:name=".ExpenseEntryActivity"
@@ -68,9 +63,6 @@
             android:label="Add Expense"
             android:parentActivityName=".DashboardActivity"
             android:theme="@style/Theme.MoneyMoney">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".DashboardActivity" />
         </activity>
 
         <activity
@@ -79,9 +71,6 @@
             android:label="Add Goal"
             android:parentActivityName=".DashboardActivity"
             android:theme="@style/Theme.MoneyMoney">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".DashboardActivity" />
         </activity>
 
         <activity
@@ -90,9 +79,6 @@
             android:label="Add Income"
             android:parentActivityName=".DashboardActivity"
             android:theme="@style/Theme.MoneyMoney">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".DashboardActivity" />
         </activity>
 
         <activity
@@ -101,28 +87,24 @@
             android:label="Add Investment"
             android:parentActivityName=".DashboardActivity"
             android:theme="@style/Theme.MoneyMoney">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".DashboardActivity" />
         </activity>
 
         <activity
             android:name=".GoalListActivity"
             android:exported="false"
             android:label="Goal List"
-            android:parentActivityName=".DashboardActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".DashboardActivity" />
+            android:parentActivityName=".DashboardActivity"
+            android:theme="@style/Theme.MoneyMoney">
         </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-           <meta-data
-               android:name="android.support.FILE_PROVIDER_PATHS"
-            android:resource="@xml/file_paths" />
+            <meta-data
+                android:name="androidx.core.content.FileProvider.PATHS"
+                android:resource="@xml/file_paths" />
         </provider>
 
     </application>
