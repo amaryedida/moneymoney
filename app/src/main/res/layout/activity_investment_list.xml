@@ -62,7 +62,7 @@
         android:id="@+id/recycler_view_investments"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="72dp"
+        android:layout_marginTop="120dp"
         android:layout_marginBottom="72dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
