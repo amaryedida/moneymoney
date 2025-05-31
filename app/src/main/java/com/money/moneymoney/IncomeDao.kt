@@ -75,31 +75,17 @@ class IncomeDao(context: Context) {
     }
 
     fun getIncomesByCurrency(currency: String): List<IncomeObject> {
-        Log.d(TAG, "Getting incomes for currency: $currency")
-        val incomeList = mutableListOf<IncomeObject>()
-        val cursor = database.query(
-            TABLE_INCOME,
-            arrayOf(
-                COLUMN_INCOME_ID,
-                COLUMN_INCOME_CURRENCY,
-                COLUMN_INCOME_CATEGORY,
-                COLUMN_INCOME_VALUE,
-                COLUMN_INCOME_COMMENT,
-                COLUMN_INCOME_DATE
-            ),
-            "${COLUMN_INCOME_CURRENCY} = ?",
-            arrayOf(currency),
-            null,
-            null,
-            "${COLUMN_INCOME_DATE} DESC"
-        )
+        val incomes = mutableListOf<IncomeObject>()
+        val query = "SELECT * FROM ${DatabaseHelper.TABLE_INCOMES} WHERE ${DatabaseHelper.COLUMN_INCOME_CURRENCY} = ? ORDER BY ${DatabaseHelper.COLUMN_INCOME_DATE} DESC"
+        val cursor = database.rawQuery(query, arrayOf(currency))
+
         cursor.use {
             while (it.moveToNext()) {
                 val income = createIncomeFromCursor(it)
-                incomeList.add(income)
+                incomes.add(income)
             }
         }
-        return incomeList
+        return incomes
     }
 
     fun getIncomesByCurrencyAndDateRange(currency: String, startDate: Long? = null, endDate: Long? = null): List<IncomeObject> {

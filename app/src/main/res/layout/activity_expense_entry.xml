@@ -83,18 +83,31 @@
 
             <TextView
                 android:id="@+id/textViewPreviousExpenses"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Previous Expenses"
                 android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_marginTop="32dp"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="8dp"/>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewPreviousExpenses"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"/>
+                android:layout_height="200dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewPreviousExpenses"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scrollbars="none"/>
+
+                <View
+                    android:id="@+id/customScrollbarLeft"
+                    android:layout_width="4dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="left|center_vertical"
+                    android:background="@android:color/darker_gray"/>
+
+            </FrameLayout>
 
         </LinearLayout>
     </ScrollView>

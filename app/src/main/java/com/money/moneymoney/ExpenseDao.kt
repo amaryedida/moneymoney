@@ -81,22 +81,8 @@ class ExpenseDao(context: Context) {
     fun getExpensesByCurrency(currency: String): List<ExpenseObject> {
         Log.d(TAG, "Getting expenses for currency: $currency")
         val expenseList = mutableListOf<ExpenseObject>()
-        val cursor = database.query(
-            TABLE_EXPENSES,
-            arrayOf(
-                COLUMN_EXPENSE_ID,
-                COLUMN_EXPENSE_CURRENCY,
-                COLUMN_EXPENSE_CATEGORY,
-                COLUMN_EXPENSE_VALUE,
-                COLUMN_EXPENSE_COMMENT,
-                COLUMN_EXPENSE_DATE
-            ),
-            "${COLUMN_EXPENSE_CURRENCY} = ?",
-            arrayOf(currency),
-            null,
-            null,
-            "${COLUMN_EXPENSE_DATE} DESC"
-        )
+        val query = "SELECT * FROM ${TABLE_EXPENSES} WHERE ${COLUMN_EXPENSE_CURRENCY} = ? ORDER BY ${COLUMN_EXPENSE_DATE} DESC"
+        val cursor = database.rawQuery(query, arrayOf(currency))
 
         Log.d(TAG, "Found ${cursor.count} expenses")
         cursor.use {

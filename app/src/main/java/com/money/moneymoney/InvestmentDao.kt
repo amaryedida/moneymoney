@@ -43,23 +43,19 @@ class InvestmentDao(context: Context) {
     }
 
     fun getInvestmentsByCurrency(currency: String): List<InvestmentObject> {
-        val investmentList = mutableListOf<InvestmentObject>()
-        val query = """
-            SELECT i.*, g.name AS goal_name
-            FROM $TABLE_INVESTMENTS i
-            LEFT JOIN $TABLE_GOALS g ON i.$COLUMN_INVESTMENT_GOAL_ID = g.$COLUMN_GOAL_ID
-            WHERE i.$COLUMN_INVESTMENT_CURRENCY = ?
-            ORDER BY i.$COLUMN_INVESTMENT_DATE DESC
-        """.trimIndent()
-
+        val investments = mutableListOf<InvestmentObject>()
+        val query = "SELECT i.*, g.${DatabaseHelper.COLUMN_GOAL_NAME} FROM ${DatabaseHelper.TABLE_INVESTMENTS} i " +
+                "LEFT JOIN ${DatabaseHelper.TABLE_GOALS} g ON i.${DatabaseHelper.COLUMN_INVESTMENT_GOAL_ID} = g.${DatabaseHelper.COLUMN_GOAL_ID} " +
+                "WHERE i.${DatabaseHelper.COLUMN_INVESTMENT_CURRENCY} = ?" +
+                " ORDER BY i.${DatabaseHelper.COLUMN_INVESTMENT_DATE} DESC"
         val cursor = database.rawQuery(query, arrayOf(currency))
-        
+
         cursor.use {
             while (it.moveToNext()) {
-                investmentList.add(createInvestmentFromCursor(it))
+                investments.add(createInvestmentFromCursor(it))
             }
         }
-        return investmentList
+        return investments
     }
 
     fun getInvestmentsByCurrencyAndDateRange(
@@ -67,38 +63,33 @@ class InvestmentDao(context: Context) {
         startDate: Long?,
         endDate: Long?
     ): List<InvestmentObject> {
-        val investmentList = mutableListOf<InvestmentObject>()
-        val queryBuilder = StringBuilder("""
-            SELECT i.*, g.name AS goal_name
-            FROM $TABLE_INVESTMENTS i
-            LEFT JOIN $TABLE_GOALS g ON i.$COLUMN_INVESTMENT_GOAL_ID = g.$COLUMN_GOAL_ID
-            WHERE i.$COLUMN_INVESTMENT_CURRENCY = ?
-        """.trimIndent())
+        val investments = mutableListOf<InvestmentObject>()
+        val selectionArgs = mutableListOf<String>()
+        var query = "SELECT i.*, g.${DatabaseHelper.COLUMN_GOAL_NAME} FROM ${DatabaseHelper.TABLE_INVESTMENTS} i " +
+                "LEFT JOIN ${DatabaseHelper.TABLE_GOALS} g ON i.${DatabaseHelper.COLUMN_INVESTMENT_GOAL_ID} = g.${DatabaseHelper.COLUMN_GOAL_ID} " +
+                "WHERE i.${DatabaseHelper.COLUMN_INVESTMENT_CURRENCY} = ?"
+        selectionArgs.add(currency)
 
-        val args = mutableListOf<String>(currency)
-
-        if (startDate != null && endDate != null) {
-            queryBuilder.append(" AND i.$COLUMN_INVESTMENT_DATE BETWEEN ? AND ?")
-            args.add(startDate.toString())
-            args.add(endDate.toString())
-        } else if (startDate != null) {
-            queryBuilder.append(" AND i.$COLUMN_INVESTMENT_DATE >= ?")
-            args.add(startDate.toString())
-        } else if (endDate != null) {
-            queryBuilder.append(" AND i.$COLUMN_INVESTMENT_DATE <= ?")
-            args.add(endDate.toString())
+        if (startDate != null) {
+            query += " AND i.${DatabaseHelper.COLUMN_INVESTMENT_DATE} >= ?"
+            selectionArgs.add(startDate.toString())
         }
 
-        queryBuilder.append(" ORDER BY i.$COLUMN_INVESTMENT_DATE DESC")
+        if (endDate != null) {
+            query += " AND i.${DatabaseHelper.COLUMN_INVESTMENT_DATE} <= ?"
+            selectionArgs.add(endDate.toString())
+        }
 
-        val cursor = database.rawQuery(queryBuilder.toString(), args.toTypedArray())
-        
+        query += " ORDER BY i.${DatabaseHelper.COLUMN_INVESTMENT_DATE} DESC"
+
+        val cursor = database.rawQuery(query, selectionArgs.toTypedArray())
+
         cursor.use {
             while (it.moveToNext()) {
-                investmentList.add(createInvestmentFromCursor(it))
+                investments.add(createInvestmentFromCursor(it))
             }
         }
-        return investmentList
+        return investments
     }
 
     fun getInvestmentsByGoalId(goalId: Long): List<InvestmentObject> {
@@ -180,16 +171,23 @@ class InvestmentDao(context: Context) {
     }
 
     private fun createInvestmentFromCursor(cursor: Cursor): InvestmentObject {
-        return InvestmentObject(
-            id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_ID)),
-            currency = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_CURRENCY)),
-            category = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_CATEGORY)),
-            value = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_VALUE)),
-            comment = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_COMMENT)),
-            date = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_DATE)),
-            goalId = cursor.getLongOrNull(cursor.getColumnIndexOrThrow(COLUMN_INVESTMENT_GOAL_ID)),
-            goalName = cursor.getStringOrNull(cursor.getColumnIndexOrThrow("goal_name"))
-        )
+        val id = cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_INVESTMENT_ID))
+        val currency = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_INVESTMENT_CURRENCY))
+        val category = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_INVESTMENT_CATEGORY))
+        val value = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_INVESTMENT_VALUE))
+        val comment = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_INVESTMENT_COMMENT))
+        val date = cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_INVESTMENT_DATE))
+        val goalId = if (cursor.isNull(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_INVESTMENT_GOAL_ID))) null else cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_INVESTMENT_GOAL_ID))
+        
+        // Check if goal_name column exists before trying to read it (for backward compatibility if needed)
+        val goalNameColumnIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_GOAL_NAME)
+        val goalName = if (goalNameColumnIndex != -1 && !cursor.isNull(goalNameColumnIndex)) {
+            cursor.getString(goalNameColumnIndex)
+        } else {
+            null
+        }
+        
+        return InvestmentObject(id, currency, category, value, comment, date, goalId, goalName)
     }
 
     private fun Cursor.getLongOrNull(columnIndex: Int): Long? {
@@ -205,16 +203,11 @@ class InvestmentDao(context: Context) {
     }
 
     fun getLastTenInvestments(): List<InvestmentObject> {
-        val query = """
-            SELECT i.*, g.name AS goal_name
-            FROM $TABLE_INVESTMENTS i
-            LEFT JOIN $TABLE_GOALS g ON i.$COLUMN_INVESTMENT_GOAL_ID = g.$COLUMN_GOAL_ID
-            ORDER BY i.$COLUMN_INVESTMENT_DATE DESC
-            LIMIT 10
-        """.trimIndent()
-
-        val cursor = database.rawQuery(query, null)
         val investments = mutableListOf<InvestmentObject>()
+        val query = "SELECT i.*, g.${DatabaseHelper.COLUMN_GOAL_NAME} FROM ${DatabaseHelper.TABLE_INVESTMENTS} i " +
+                "LEFT JOIN ${DatabaseHelper.TABLE_GOALS} g ON i.${DatabaseHelper.COLUMN_INVESTMENT_GOAL_ID} = g.${DatabaseHelper.COLUMN_GOAL_ID} " +
+                "ORDER BY i.${DatabaseHelper.COLUMN_INVESTMENT_DATE} DESC LIMIT 10"
+        val cursor = database.rawQuery(query, null)
 
         cursor.use {
             while (it.moveToNext()) {

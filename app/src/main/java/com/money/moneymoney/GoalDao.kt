@@ -188,25 +188,10 @@ class GoalDao(context: Context) {
         return goals
     }
 
-    fun getAllActiveGoalsByCurrency(currency: String): MutableList<GoalObject> {
+    fun getAllActiveGoalsByCurrency(currency: String): List<GoalObject> {
         val goals = mutableListOf<GoalObject>()
-        val cursor: Cursor = database.query(
-            TABLE_GOALS,
-            arrayOf(
-                COLUMN_GOAL_ID,
-                COLUMN_GOAL_NAME,
-                COLUMN_GOAL_TARGET_VALUE,
-                COLUMN_GOAL_CURRENCY,
-                COLUMN_GOAL_CREATION_DATE,
-                COLUMN_GOAL_STATUS,
-                COLUMN_GOAL_COMPLETION_DATE
-            ),
-            "$COLUMN_GOAL_STATUS = ? AND $COLUMN_GOAL_CURRENCY = ?",
-            arrayOf(STATUS_ACTIVE, currency),
-            null,
-            null,
-            null
-        )
+        val query = "SELECT * FROM ${DatabaseHelper.TABLE_GOALS} WHERE ${DatabaseHelper.COLUMN_GOAL_CURRENCY} = ? AND ${DatabaseHelper.COLUMN_GOAL_STATUS} = ? ORDER BY ${DatabaseHelper.COLUMN_GOAL_CREATION_DATE} DESC"
+        val cursor = database.rawQuery(query, arrayOf(currency, STATUS_ACTIVE))
 
         cursor.use {
             if (it.moveToFirst()) {

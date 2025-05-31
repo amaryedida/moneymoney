@@ -30,6 +30,7 @@ class InvestmentListAdapter(private var investments: List<InvestmentObject> = em
         val amountTextView: TextView = itemView.findViewById(R.id.textViewInvestmentAmount)
         val dateTextView: TextView = itemView.findViewById(R.id.textViewInvestmentDate)
         val typeTextView: TextView = itemView.findViewById(R.id.textViewInvestmentType)
+        val commentTextView: TextView = itemView.findViewById(R.id.textViewInvestmentComment)
         val editButton: ImageButton = itemView.findViewById(R.id.buttonEdit)
         val deleteButton: ImageButton = itemView.findViewById(R.id.buttonDelete)
     }
@@ -57,6 +58,7 @@ class InvestmentListAdapter(private var investments: List<InvestmentObject> = em
         holder.amountTextView.text = String.format("%.2f", currentInvestment.value)
         holder.dateTextView.text = dateFormatter.format(Date(currentInvestment.date))
         holder.typeTextView.text = currentInvestment.currency
+        holder.commentTextView.text = currentInvestment.comment ?: ""  // Display comment, empty string if null
 
         holder.editButton.setOnClickListener {
             listener?.onEditItem(currentInvestment)

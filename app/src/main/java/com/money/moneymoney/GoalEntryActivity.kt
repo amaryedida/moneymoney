@@ -17,6 +17,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
 import android.widget.ArrayAdapter
+import android.widget.FrameLayout
+import android.widget.TextView
 
 class GoalEntryActivity : AppCompatActivity() {
 
@@ -38,6 +40,10 @@ class GoalEntryActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private var selectedCreationDateInMillis: Long? = null
     private var currentGoal: GoalObject? = null
+    private lateinit var textViewPreviousGoals: TextView
+    private lateinit var recyclerViewPreviousGoals: RecyclerView
+    private lateinit var customScrollbarLeft: View
+    private lateinit var previousGoalAdapter: PreviousGoalAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +74,46 @@ class GoalEntryActivity : AppCompatActivity() {
             loadActiveGoals()
             updateCreationDateEditText()
             
+            // Set up RecyclerView
+            recyclerViewPreviousGoals.layoutManager = LinearLayoutManager(this)
+            previousGoalAdapter = PreviousGoalAdapter(emptyList())
+            recyclerViewPreviousGoals.adapter = previousGoalAdapter
+
+            // Get reference to custom scrollbar
+            customScrollbarLeft = findViewById(R.id.customScrollbarLeft)
+
+            // Add scroll listener to RecyclerView
+            recyclerViewPreviousGoals.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+
+                    val verticalScrollRange = recyclerView.computeVerticalScrollRange()
+                    val verticalScrollOffset = recyclerView.computeVerticalScrollOffset()
+                    val verticalScrollExtent = recyclerView.computeVerticalScrollExtent()
+
+                    if (verticalScrollRange <= verticalScrollExtent) {
+                        // Content is not scrollable, hide scrollbar
+                        customScrollbarLeft.visibility = View.GONE
+                    } else {
+                        // Content is scrollable, show and position scrollbar
+                        customScrollbarLeft.visibility = View.VISIBLE
+
+                        // Calculate scrollbar height
+                        val scrollbarHeight = (verticalScrollExtent.toFloat() / verticalScrollRange.toFloat() * customScrollbarLeft.height.toFloat()).toInt()
+                        val lp = customScrollbarLeft.layoutParams as FrameLayout.LayoutParams
+                        lp.height = scrollbarHeight.coerceAtLeast(resources.getDimensionPixelSize(R.dimen.min_scrollbar_height))
+                        customScrollbarLeft.layoutParams = lp
+
+                        // Calculate scrollbar position
+                        val scrollbarMaxTravel = customScrollbarLeft.height - scrollbarHeight
+                        val scrollbarPosition = (verticalScrollOffset.toFloat() / (verticalScrollRange - verticalScrollExtent).toFloat() * scrollbarMaxTravel.toFloat()).toInt()
+                        customScrollbarLeft.translationY = scrollbarPosition.toFloat()
+                    }
+                }
+            })
+
+            loadPreviousGoals() // Load previous goals
+            
         } catch (e: Exception) {
             Log.e(TAG, "Error in initialization", e)
             Toast.makeText(this, "Error initializing: ${e.message}", Toast.LENGTH_LONG).show()
@@ -85,6 +131,8 @@ class GoalEntryActivity : AppCompatActivity() {
         spinnerGoalCurrency = findViewById(R.id.spinnerGoalCurrency)
         buttonSaveGoal = findViewById(R.id.buttonSaveGoal)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
+        textViewPreviousGoals = findViewById(R.id.textViewPreviousGoals)
+        recyclerViewPreviousGoals = findViewById(R.id.recyclerViewPreviousGoals)
     }
 
     private fun setupCurrencySpinner() {
@@ -285,6 +333,22 @@ class GoalEntryActivity : AppCompatActivity() {
         val currencies = arrayOf("INR", "AED")
         val index = currencies.indexOfFirst { it == currency }
         return if (index >= 0) index else 0
+    }
+
+    private fun loadPreviousGoals() {
+        val previousGoals = goalDao.getLastTenGoals()
+        previousGoalAdapter.updateData(previousGoals)
+
+        // Ensure scrollbar visibility is updated after data load
+        recyclerViewPreviousGoals.post { // Post to ensure layout pass is complete
+            val verticalScrollRange = recyclerViewPreviousGoals.computeVerticalScrollRange()
+            val verticalScrollExtent = recyclerViewPreviousGoals.computeVerticalScrollExtent()
+            if (verticalScrollRange <= verticalScrollExtent) {
+                customScrollbarLeft.visibility = View.GONE
+            } else {
+                customScrollbarLeft.visibility = View.VISIBLE
+            }
+        }
     }
 
     override fun onDestroy() {

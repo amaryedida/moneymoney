@@ -18,6 +18,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
+import android.view.View
+import android.widget.FrameLayout
 
 class ExpenseEntryActivity : AppCompatActivity() {
 
@@ -34,6 +36,7 @@ class ExpenseEntryActivity : AppCompatActivity() {
     private lateinit var buttonSaveExpense: Button
     private lateinit var textViewPreviousExpenses: TextView
     private lateinit var recyclerViewPreviousExpenses: RecyclerView
+    private lateinit var customScrollbarLeft: View
     private lateinit var expenseDao: ExpenseDao
     private lateinit var previousExpensesAdapter: PreviousExpenseAdapter
     private lateinit var bottomNavigation: BottomNavigationView
@@ -58,6 +61,7 @@ class ExpenseEntryActivity : AppCompatActivity() {
             textViewPreviousExpenses = findViewById(R.id.textViewPreviousExpenses)
             recyclerViewPreviousExpenses = findViewById(R.id.recyclerViewPreviousExpenses)
             bottomNavigation = findViewById(R.id.bottomNavigationView)
+            customScrollbarLeft = findViewById(R.id.customScrollbarLeft)
             Log.d(TAG, "All views found and initialized")
         } catch (e: Exception) {
             Log.e(TAG, "Error finding views", e)
@@ -130,6 +134,36 @@ class ExpenseEntryActivity : AppCompatActivity() {
         previousExpensesAdapter = PreviousExpenseAdapter(emptyList())
         recyclerViewPreviousExpenses.adapter = previousExpensesAdapter
         Log.d(TAG, "RecyclerView setup complete")
+
+        // Add scroll listener to RecyclerView
+        recyclerViewPreviousExpenses.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val verticalScrollRange = recyclerView.computeVerticalScrollRange()
+                val verticalScrollOffset = recyclerView.computeVerticalScrollOffset()
+                val verticalScrollExtent = recyclerView.computeVerticalScrollExtent()
+
+                if (verticalScrollRange <= verticalScrollExtent) {
+                    // Content is not scrollable, hide scrollbar
+                    customScrollbarLeft.visibility = View.GONE
+                } else {
+                    // Content is scrollable, show and position scrollbar
+                    customScrollbarLeft.visibility = View.VISIBLE
+
+                    // Calculate scrollbar height
+                    val scrollbarHeight = (verticalScrollExtent.toFloat() / verticalScrollRange.toFloat() * customScrollbarLeft.height.toFloat()).toInt()
+                    val lp = customScrollbarLeft.layoutParams as FrameLayout.LayoutParams
+                    lp.height = scrollbarHeight.coerceAtLeast(resources.getDimensionPixelSize(R.dimen.min_scrollbar_height))
+                    customScrollbarLeft.layoutParams = lp
+
+                    // Calculate scrollbar position
+                    val scrollbarMaxTravel = customScrollbarLeft.height - scrollbarHeight
+                    val scrollbarPosition = (verticalScrollOffset.toFloat() / (verticalScrollRange - verticalScrollExtent).toFloat() * scrollbarMaxTravel.toFloat()).toInt()
+                    customScrollbarLeft.translationY = scrollbarPosition.toFloat()
+                }
+            }
+        })
 
         loadPreviousExpenses()
         updateDateEditText()
@@ -262,6 +296,17 @@ class ExpenseEntryActivity : AppCompatActivity() {
     private fun loadPreviousExpenses() {
         val lastTenExpenses = expenseDao.getLastTenExpenses()
         previousExpensesAdapter.updateData(lastTenExpenses)
+
+        // Ensure scrollbar visibility is updated after data load
+        recyclerViewPreviousExpenses.post { // Post to ensure layout pass is complete
+            val verticalScrollRange = recyclerViewPreviousExpenses.computeVerticalScrollRange()
+            val verticalScrollExtent = recyclerViewPreviousExpenses.computeVerticalScrollExtent()
+            if (verticalScrollRange <= verticalScrollExtent) {
+                customScrollbarLeft.visibility = View.GONE
+            } else {
+                customScrollbarLeft.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun updateDateEditText() {

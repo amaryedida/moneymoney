@@ -146,12 +146,26 @@
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="2dp">
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerViewGoalProgress"
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"
-                    tools:listitem="@layout/item_goal_progress" />
+                    android:layout_height="200dp">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerViewGoalProgress"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:nestedScrollingEnabled="false"
+                        android:scrollbars="none"
+                        tools:listitem="@layout/item_goal_progress" />
+
+                    <View
+                        android:id="@+id/customScrollbarLeft"
+                        android:layout_width="4dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="left|center_vertical"
+                        android:background="@android:color/darker_gray"/>
+
+                </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <Button
@@ -176,7 +190,7 @@
         app:backgroundTint="@color/teal_700"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintEnd_toStartOf="@id/fabAdd"
-        android:layout_marginEnd="88dp" />
+        android:layout_marginEnd="16dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
