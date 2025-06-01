@@ -34,11 +34,11 @@ class IncomeEntryActivity : AppCompatActivity() {
     private lateinit var editTextIncomeComment: EditText
     private lateinit var buttonSaveIncome: Button
     private lateinit var bottomNavigationView: BottomNavigationView
-    private lateinit var textViewPreviousIncome: TextView
-    private lateinit var recyclerViewPreviousIncome: RecyclerView
+    private lateinit var textViewPreviousIncomes: TextView
+    private lateinit var recyclerViewPreviousIncomes: RecyclerView
     private lateinit var customScrollbarLeft: View
     private lateinit var incomeDao: IncomeDao
-    private lateinit var previousIncomeAdapter: PreviousIncomeAdapter
+    private lateinit var previousIncomesAdapter: PreviousIncomeAdapter
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
     private var editingIncome: IncomeObject? = null
 
@@ -57,8 +57,8 @@ class IncomeEntryActivity : AppCompatActivity() {
         editTextIncomeComment = findViewById(R.id.editTextIncomeComment)
         buttonSaveIncome = findViewById(R.id.buttonSaveIncome)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
-        textViewPreviousIncome = findViewById(R.id.textViewPreviousIncome)
-        recyclerViewPreviousIncome = findViewById(R.id.recyclerViewPreviousIncome)
+        textViewPreviousIncomes = findViewById(R.id.textViewPreviousIncomes)
+        recyclerViewPreviousIncomes = findViewById(R.id.recyclerViewPreviousIncomes)
 
         // Initialize spinners
         val currencies = resources.getStringArray(R.array.currencies)
@@ -110,15 +110,15 @@ class IncomeEntryActivity : AppCompatActivity() {
         }
         
         // Set up RecyclerView for previous incomes
-        recyclerViewPreviousIncome.layoutManager = LinearLayoutManager(this)
-        previousIncomeAdapter = PreviousIncomeAdapter(emptyList())
-        recyclerViewPreviousIncome.adapter = previousIncomeAdapter
+        recyclerViewPreviousIncomes.layoutManager = LinearLayoutManager(this)
+        previousIncomesAdapter = PreviousIncomeAdapter(emptyList())
+        recyclerViewPreviousIncomes.adapter = previousIncomesAdapter
 
         // Get reference to custom scrollbar
         customScrollbarLeft = findViewById(R.id.customScrollbarLeft)
 
         // Add scroll listener to RecyclerView
-        recyclerViewPreviousIncome.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        recyclerViewPreviousIncomes.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
@@ -260,12 +260,12 @@ class IncomeEntryActivity : AppCompatActivity() {
 
     private fun loadPreviousIncomes() {
         val lastTenIncomes = incomeDao.getLastTenIncomes()
-        previousIncomeAdapter.updateData(lastTenIncomes)
+        previousIncomesAdapter.updateData(lastTenIncomes)
 
         // Ensure scrollbar visibility is updated after data load
-        recyclerViewPreviousIncome.post { // Post to ensure layout pass is complete
-            val verticalScrollRange = recyclerViewPreviousIncome.computeVerticalScrollRange()
-            val verticalScrollExtent = recyclerViewPreviousIncome.computeVerticalScrollExtent()
+        recyclerViewPreviousIncomes.post { // Post to ensure layout pass is complete
+            val verticalScrollRange = recyclerViewPreviousIncomes.computeVerticalScrollRange()
+            val verticalScrollExtent = recyclerViewPreviousIncomes.computeVerticalScrollExtent()
             if (verticalScrollRange <= verticalScrollExtent) {
                 customScrollbarLeft.visibility = View.GONE
             } else {

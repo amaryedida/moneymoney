@@ -288,7 +288,7 @@ class InvestmentEntryActivity : AppCompatActivity() {
         Log.d(TAG, "Retrieved ${lastTenInvestments.size} previous investments.")
         // Log details of each investment retrieved
         lastTenInvestments.forEach { investment ->
-            Log.d(TAG, "Investment: ID=", investment.id, ", Category=", investment.category, ", Value=", investment.value, ", GoalName=", investment.goalName)
+            Log.d(TAG, "Investment: ID=${investment.id}, Category=${investment.category}, Value=${investment.value}, GoalName=${investment.goalName}")
         }
         previousInvestmentAdapter.updateData(lastTenInvestments)
 

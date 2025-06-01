@@ -43,7 +43,7 @@ class GoalEntryActivity : AppCompatActivity() {
     private lateinit var textViewPreviousGoals: TextView
     private lateinit var recyclerViewPreviousGoals: RecyclerView
     private lateinit var customScrollbarLeft: View
-    private lateinit var previousGoalAdapter: PreviousGoalAdapter
+    private lateinit var previousGoalsAdapter: GoalAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,8 +76,8 @@ class GoalEntryActivity : AppCompatActivity() {
             
             // Set up RecyclerView
             recyclerViewPreviousGoals.layoutManager = LinearLayoutManager(this)
-            previousGoalAdapter = PreviousGoalAdapter(emptyList())
-            recyclerViewPreviousGoals.adapter = previousGoalAdapter
+            previousGoalsAdapter = GoalAdapter(mutableListOf())
+            recyclerViewPreviousGoals.adapter = previousGoalsAdapter
 
             // Get reference to custom scrollbar
             customScrollbarLeft = findViewById(R.id.customScrollbarLeft)
@@ -336,8 +336,8 @@ class GoalEntryActivity : AppCompatActivity() {
     }
 
     private fun loadPreviousGoals() {
-        val previousGoals = goalDao.getLastTenGoals()
-        previousGoalAdapter.updateData(previousGoals)
+        val activeGoals = goalDao.getAllActiveGoals()
+        previousGoalsAdapter.updateGoals(activeGoals)
 
         // Ensure scrollbar visibility is updated after data load
         recyclerViewPreviousGoals.post { // Post to ensure layout pass is complete

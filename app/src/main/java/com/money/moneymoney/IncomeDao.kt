@@ -76,13 +76,15 @@ class IncomeDao(context: Context) {
 
     fun getIncomesByCurrency(currency: String): List<IncomeObject> {
         val incomes = mutableListOf<IncomeObject>()
-        val query = "SELECT * FROM ${DatabaseHelper.TABLE_INCOMES} WHERE ${DatabaseHelper.COLUMN_INCOME_CURRENCY} = ? ORDER BY ${DatabaseHelper.COLUMN_INCOME_DATE} DESC"
+        val query = "SELECT * FROM ${DatabaseHelper.TABLE_INCOME} WHERE ${DatabaseHelper.COLUMN_INCOME_CURRENCY} = ? ORDER BY ${DatabaseHelper.COLUMN_INCOME_DATE} DESC"
         val cursor = database.rawQuery(query, arrayOf(currency))
 
         cursor.use {
-            while (it.moveToNext()) {
-                val income = createIncomeFromCursor(it)
-                incomes.add(income)
+            if (it.moveToFirst()) {
+                do {
+                    val income = createIncomeFromCursor(it)
+                    incomes.add(income)
+                } while (it.moveToNext())
             }
         }
         return incomes
