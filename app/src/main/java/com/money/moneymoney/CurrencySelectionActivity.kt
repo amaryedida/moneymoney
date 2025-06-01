@@ -28,7 +28,6 @@ class CurrencySelectionActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_CURRENCY = "selected_currency"
         private const val TAG = "CurrencySelectionActivity"
-        private const val PERMISSION_REQUEST_CODE = 1001
     }
 
     private var selectedCurrency: String? = null
@@ -36,62 +35,6 @@ class CurrencySelectionActivity : AppCompatActivity() {
     private var toDate: Calendar = Calendar.getInstance()
     private var currentExportType: String = ""
     private var pendingExportAction: (() -> Unit)? = null
-
-    private fun checkAndRequestPermissions(onGranted: () -> Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val permissions = arrayOf(
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-            
-            val permissionsToRequest = permissions.filter {
-                checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
-            }.toTypedArray()
-            
-            if (permissionsToRequest.isNotEmpty()) {
-                Log.d(TAG, "Permissions to request: ${permissionsToRequest.joinToString()}")
-
-                // Check if we should show a rationale (user previously denied without "don't ask again")
-                val showRationale = permissionsToRequest.any {
-                    shouldShowRequestPermissionRationale(it)
-                }
-
-                if (showRationale) {
-                    // Show explanation before requesting again
-                    Toast.makeText(this, "Storage permissions are needed to export data.", Toast.LENGTH_LONG).show()
-                }
-
-                pendingExportAction = onGranted
-                requestPermissions(permissionsToRequest, PERMISSION_REQUEST_CODE)
-            } else {
-                Log.d(TAG, "Storage permissions already granted")
-                onGranted()
-            }
-        } else {
-            Log.d(TAG, "Android version < M, no need for runtime permissions")
-            onGranted()
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                Log.d(TAG, "Storage permissions granted")
-                Toast.makeText(this, "Storage permissions granted", Toast.LENGTH_SHORT).show()
-                pendingExportAction?.invoke()
-            } else {
-                Log.d(TAG, "Storage permissions denied")
-                // Just show a toast on denial, do not navigate to settings here
-                Toast.makeText(this, "Storage permission denied. Cannot export data.", Toast.LENGTH_LONG).show()
-            }
-            pendingExportAction = null
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -168,15 +111,15 @@ class CurrencySelectionActivity : AppCompatActivity() {
 
         buttonExportIncome.setOnClickListener {
             Log.d(TAG, "Export Income button clicked")
-            checkAndRequestPermissions { showDateRangeDialog("income") }
+            showDateRangeDialog("income")
         }
         buttonExportExpense.setOnClickListener {
             Log.d(TAG, "Export Expense button clicked")
-            checkAndRequestPermissions { showDateRangeDialog("expense") }
+            showDateRangeDialog("expense")
         }
         buttonExportInvestment.setOnClickListener {
             Log.d(TAG, "Export Investment button clicked")
-            checkAndRequestPermissions { showDateRangeDialog("investment") }
+            showDateRangeDialog("investment")
         }
     }
 
@@ -383,7 +326,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
     private fun shareCSVFile(file: File, successMessage: String) {
         try {
             Log.d(TAG, "Starting file share...")
-            val uri = FileProvider.getUriForFile(this, "$packageName.provider", file)
+            val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
             Log.d(TAG, "File URI created: $uri")
             
             val intent = Intent(Intent.ACTION_SEND).apply {
