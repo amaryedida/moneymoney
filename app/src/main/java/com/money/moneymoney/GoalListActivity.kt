@@ -143,7 +143,7 @@ class GoalListActivity : AppCompatActivity(), GoalListAdapter.OnItemActionListen
             Toast.makeText(this, "Start date cannot be after end date", Toast.LENGTH_SHORT).show()
             return
         }
-        val goals = goalDao.getActiveGoalsByCreationDateRange(startDate?.time, endDate?.time)
+        val goals = goalDao.getActiveGoalsByCreationDateRange(startDate?.time, endDate?.time, selectedCurrency!!)
         updateGoalListWithProgress(goals)
     }
 

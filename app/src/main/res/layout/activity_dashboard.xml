@@ -155,7 +155,6 @@
                         android:id="@+id/recyclerViewGoalProgress"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:nestedScrollingEnabled="false"
                         android:scrollbars="none"
                         tools:listitem="@layout/item_goal_progress" />
 

@@ -16,13 +16,6 @@
             android:orientation="vertical"
             android:gravity="center_horizontal">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewGoals"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none"
-                android:layout_marginBottom="16dp"/>
-
             <LinearLayout
                 android:id="@+id/layoutAddGoalForm"
                 android:layout_width="match_parent"

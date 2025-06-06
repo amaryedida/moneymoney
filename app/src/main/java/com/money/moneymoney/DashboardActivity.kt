@@ -15,6 +15,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.Calendar
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ScrollView
+import android.view.MotionEvent
+import androidx.recyclerview.widget.RecyclerView
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -36,6 +39,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var incomeDao: IncomeDao
     private lateinit var expenseDao: ExpenseDao
     private lateinit var customScrollbarLeft: View
+    private lateinit var scrollViewDashboard: ScrollView
 
     private lateinit var buttonViewReports: Button
     private lateinit var fabAdd: FloatingActionButton
@@ -76,6 +80,7 @@ class DashboardActivity : AppCompatActivity() {
             fabDriveSync = findViewById(R.id.fabDriveSync)
             bottomNavigation = findViewById(R.id.bottomNavigationView)
             customScrollbarLeft = findViewById(R.id.customScrollbarLeft)
+            scrollViewDashboard = findViewById(R.id.scrollViewDashboard)
             Log.d(TAG, "All views initialized successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing views", e)
@@ -114,6 +119,26 @@ class DashboardActivity : AppCompatActivity() {
                     }
                 }
             })
+
+            // Prevent parent ScrollView from intercepting touches when RecyclerView is scrolled
+            recyclerViewGoalProgress.setOnTouchListener {
+                v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        // Disallow parent from intercepting touch events
+                        scrollViewDashboard.requestDisallowInterceptTouchEvent(true)
+                        false // Allow RecyclerView to handle the touch event
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        // Allow parent to intercept touch events again when touch is released
+                        scrollViewDashboard.requestDisallowInterceptTouchEvent(false)
+                        false // Allow RecyclerView to handle the touch event
+                    }
+                    else -> {
+                        false // Allow RecyclerView to handle other touch events
+                    }
+                }
+            }
 
             Log.d(TAG, "RecyclerView setup completed successfully")
         } catch (e: Exception) {

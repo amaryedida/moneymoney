@@ -28,8 +28,7 @@ class GoalEntryActivity : AppCompatActivity() {
     }
 
     private lateinit var btnAddGoal: Button
-    private lateinit var recyclerViewGoals: RecyclerView
-    private lateinit var goalAdapter: GoalAdapter
+    private lateinit var recyclerViewPreviousGoals: RecyclerView
     private lateinit var layoutAddGoalForm: LinearLayout
     private lateinit var editTextGoalName: EditText
     private lateinit var editTextTargetAmount: EditText
@@ -41,7 +40,6 @@ class GoalEntryActivity : AppCompatActivity() {
     private var selectedCreationDateInMillis: Long? = null
     private var currentGoal: GoalObject? = null
     private lateinit var textViewPreviousGoals: TextView
-    private lateinit var recyclerViewPreviousGoals: RecyclerView
     private lateinit var customScrollbarLeft: View
     private lateinit var previousGoalsAdapter: GoalAdapter
 
@@ -123,7 +121,7 @@ class GoalEntryActivity : AppCompatActivity() {
     }
 
     private fun initializeViews() {
-        recyclerViewGoals = findViewById(R.id.recyclerViewGoals)
+        // recyclerViewGoals = findViewById(R.id.recyclerViewGoals) // Removed
         layoutAddGoalForm = findViewById(R.id.layoutAddGoalForm)
         editTextGoalName = findViewById(R.id.editTextGoalName)
         editTextTargetAmount = findViewById(R.id.editTextTargetAmount)
@@ -144,9 +142,9 @@ class GoalEntryActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         goalDao = GoalDao(this)
-        goalAdapter = GoalAdapter(mutableListOf())
-        recyclerViewGoals.layoutManager = LinearLayoutManager(this)
-        recyclerViewGoals.adapter = goalAdapter
+        // goalAdapter = GoalAdapter(mutableListOf()) // Removed
+        // recyclerViewGoals.layoutManager = LinearLayoutManager(this) // Removed
+        // recyclerViewGoals.adapter = goalAdapter // Removed
     }
 
     private fun setupDatePicker() {
@@ -183,7 +181,7 @@ class GoalEntryActivity : AppCompatActivity() {
 
     private fun loadActiveGoals() {
         val activeGoals = goalDao.getAllActiveGoals()
-        goalAdapter.updateGoals(activeGoals)
+        // goalAdapter.updateGoals(activeGoals) // Removed
         layoutAddGoalForm.visibility = View.VISIBLE
     }
 

@@ -145,10 +145,10 @@ class GoalDao(context: Context) {
         dbHelper.close()
     }
 
-    fun getActiveGoalsByCreationDateRange(startDate: Long?, endDate: Long?): MutableList<GoalObject> {
+    fun getActiveGoalsByCreationDateRange(startDate: Long?, endDate: Long?, currency: String): MutableList<GoalObject> {
         val goals = mutableListOf<GoalObject>()
-        val selection = StringBuilder("$COLUMN_GOAL_STATUS = ?")
-        val selectionArgs = mutableListOf(STATUS_ACTIVE)
+        val selection = StringBuilder("$COLUMN_GOAL_STATUS = ? AND $COLUMN_GOAL_CURRENCY = ?")
+        val selectionArgs = mutableListOf(STATUS_ACTIVE, currency)
         if (startDate != null && endDate != null) {
             selection.append(" AND $COLUMN_GOAL_CREATION_DATE BETWEEN ? AND ?")
             selectionArgs.add(startDate.toString())
