@@ -17,7 +17,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ScrollView
 import android.view.MotionEvent
-import androidx.recyclerview.widget.RecyclerView
+
 
 class DashboardActivity : AppCompatActivity() {
 
