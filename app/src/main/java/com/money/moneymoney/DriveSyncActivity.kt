@@ -211,6 +211,17 @@ class DriveSyncActivity : AppCompatActivity() {
                 ?.execute()
             val filePath = getFileStreamPath("backup.db")
             if (!filePath.exists()) return "Backup file not found"
+
+            // --- Add verification step here ---
+            try {
+                SQLiteDatabase.openDatabase(filePath.absolutePath, null, SQLiteDatabase.OPEN_READONLY).close()
+                Log.d("DriveSync", "Local backup file is a valid SQLite database.")
+            } catch (e: Exception) {
+                Log.e("DriveSync", "Local backup file is NOT a valid SQLite database before upload.", e)
+                return "Error: Created backup file is corrupted locally."
+            }
+            // --- End verification step ---
+
             val fileContent = FileInputStream(filePath).readBytes()
             val contentStream = ByteArrayContent.fromString("application/octet-stream", String(fileContent))
             if (fileList != null && fileList.files.isNotEmpty()) {
