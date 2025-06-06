@@ -22,6 +22,7 @@ import java.util.*
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import java.text.ParseException
 
 class CurrencySelectionActivity : AppCompatActivity() {
 
@@ -34,7 +35,6 @@ class CurrencySelectionActivity : AppCompatActivity() {
     private var fromDate: Calendar = Calendar.getInstance()
     private var toDate: Calendar = Calendar.getInstance()
     private var currentExportType: String = ""
-    private var pendingExportAction: (() -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -233,10 +233,35 @@ class CurrencySelectionActivity : AppCompatActivity() {
 
     private fun isDateInRange(date: String, fromDate: Calendar, toDate: Calendar): Boolean {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val transactionDate = dateFormat.parse(date)
-        return transactionDate != null && 
-               !transactionDate.before(fromDate.time) && 
-               !transactionDate.after(toDate.time)
+        val transactionDate: Date? = try {
+            dateFormat.parse(date)
+        } catch (e: ParseException) {
+            Log.e(TAG, "Error parsing date string: $date", e)
+            null // Return null if parsing fails
+        }
+
+        // Adjust toDate to include the entire last day
+        val adjustedToDate = toDate.clone() as Calendar
+        adjustedToDate.add(Calendar.DAY_OF_MONTH, 1)
+
+        // Create a Calendar for the transaction date to compare calendar days
+        val transactionCalendar = Calendar.getInstance().apply {
+            if (transactionDate != null) time = transactionDate
+        }
+
+        // Check if transaction date is on or after the start of fromDate
+        val isAfterOrEqualToFromDate = transactionCalendar.timeInMillis >= fromDate.timeInMillis
+
+        // Check if transaction date is before the start of the day after toDate
+        val isBeforeAdjustedToDate = transactionCalendar.timeInMillis < adjustedToDate.timeInMillis
+
+        return transactionDate != null && isAfterOrEqualToFromDate && isBeforeAdjustedToDate
+    }
+
+    private fun escapeCsvTextField(field: String?): String {
+        if (field == null) return ""
+        // Enclose field in double quotes and escape existing double quotes
+        return "\"" + field.replace("\"", "\"\"") + "\""
     }
 
     private fun exportIncomeListAsCSV() {
@@ -246,18 +271,21 @@ class CurrencySelectionActivity : AppCompatActivity() {
             val incomes = incomeDao.getIncomesByCurrency("INR") + incomeDao.getIncomesByCurrency("AED")
             Log.d(TAG, "Retrieved ${incomes.size} incomes")
             
-            val filteredIncomes = incomes.filter { isDateInRange(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.date)), fromDate, toDate) }
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val filteredIncomes = incomes.filter { isDateInRange(dateFormat.format(java.util.Date(it.date)), fromDate, toDate) }
             Log.d(TAG, "Filtered to ${filteredIncomes.size} incomes")
             
             val file = File(cacheDir, "income_list.csv")
             Log.d(TAG, "Creating file at: ${file.absolutePath}")
             
-            val writer = OutputStreamWriter(FileOutputStream(file))
-            writer.write("ID,Currency,Category,Value,Comment,Date\n")
-            for (income in filteredIncomes) {
-                writer.write("${income.id.toString()},${income.currency},${income.category},\"${income.value.toString()}\",${income.comment ?: ""},${income.date}\n")
+            FileOutputStream(file).use { fos ->
+                OutputStreamWriter(fos).use { writer ->
+                    writer.write("ID,Currency,Category,Value,Comment,Date\n")
+                    for (income in filteredIncomes) {
+                        writer.write("${income.id},${income.currency},${income.category},${income.value},${escapeCsvTextField(income.comment)},${dateFormat.format(java.util.Date(income.date))}\n")
+                    }
+                }
             }
-            writer.close()
             Log.d(TAG, "File written successfully")
             
             shareCSVFile(file, "Income List exported successfully!")
@@ -274,18 +302,21 @@ class CurrencySelectionActivity : AppCompatActivity() {
             val expenses = expenseDao.getExpensesByCurrency("INR") + expenseDao.getExpensesByCurrency("AED")
             Log.d(TAG, "Retrieved ${expenses.size} expenses")
             
-            val filteredExpenses = expenses.filter { isDateInRange(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.date)), fromDate, toDate) }
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val filteredExpenses = expenses.filter { isDateInRange(dateFormat.format(java.util.Date(it.date)), fromDate, toDate) }
             Log.d(TAG, "Filtered to ${filteredExpenses.size} expenses")
             
             val file = File(cacheDir, "expense_list.csv")
             Log.d(TAG, "Creating file at: ${file.absolutePath}")
             
-            val writer = OutputStreamWriter(FileOutputStream(file))
-            writer.write("ID,Currency,Category,Value,Comment,Date\n")
-            for (expense in filteredExpenses) {
-                writer.write("${expense.id.toString()},${expense.currency},${expense.category},\"${expense.value.toString()}\",${expense.comment ?: ""},${expense.date}\n")
+            FileOutputStream(file).use { fos ->
+                OutputStreamWriter(fos).use { writer ->
+                    writer.write("ID,Currency,Category,Value,Comment,Date\n")
+                    for (expense in filteredExpenses) {
+                        writer.write("${expense.id},${expense.currency},${expense.category},${expense.value},${escapeCsvTextField(expense.comment)},${dateFormat.format(java.util.Date(expense.date))}\n")
+                    }
+                }
             }
-            writer.close()
             Log.d(TAG, "File written successfully")
             
             shareCSVFile(file, "Expense List exported successfully!")
@@ -302,18 +333,21 @@ class CurrencySelectionActivity : AppCompatActivity() {
             val investments = investmentDao.getInvestmentsByCurrency("INR") + investmentDao.getInvestmentsByCurrency("AED")
             Log.d(TAG, "Retrieved ${investments.size} investments")
             
-            val filteredInvestments = investments.filter { isDateInRange(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.date)), fromDate, toDate) }
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val filteredInvestments = investments.filter { isDateInRange(dateFormat.format(java.util.Date(it.date)), fromDate, toDate) }
             Log.d(TAG, "Filtered to ${filteredInvestments.size} investments")
             
             val file = File(cacheDir, "investment_list.csv")
             Log.d(TAG, "Creating file at: ${file.absolutePath}")
             
-            val writer = OutputStreamWriter(FileOutputStream(file))
-            writer.write("ID,Currency,Category,Value,Comment,Date,GoalId,GoalName\n")
-            for (investment in filteredInvestments) {
-                writer.write("${investment.id.toString()},${investment.currency},${investment.category},\"${investment.value.toString()}\",${investment.comment ?: ""},${investment.date},${investment.goalId?.toString() ?: ""},${investment.goalName ?: ""}\n")
+            FileOutputStream(file).use { fos ->
+                OutputStreamWriter(fos).use { writer ->
+                    writer.write("ID,Currency,Category,Value,Comment,Date,GoalId,GoalName\n")
+                    for (investment in filteredInvestments) {
+                        writer.write("${investment.id},${investment.currency},${investment.category},${investment.value},${escapeCsvTextField(investment.comment)},${dateFormat.format(java.util.Date(investment.date))},${investment.goalId ?: ""},${escapeCsvTextField(investment.goalName)}\n")
+                    }
+                }
             }
-            writer.close()
             Log.d(TAG, "File written successfully")
             
             shareCSVFile(file, "Investment List exported successfully!")
