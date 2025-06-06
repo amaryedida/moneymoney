@@ -339,13 +339,15 @@ class DriveSyncActivity : AppCompatActivity() {
 
                 // Copy all tables
                 val tables = db.rawQuery(
-                    "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != 'android_metadata'",
                     null
                 )
 
                 tables.use { cursor ->
                     while (cursor.moveToNext()) {
                         val tableName = cursor.getString(0)
+                        // Drop table if it exists in backup before creating
+                        db.execSQL("DROP TABLE IF EXISTS backup.$tableName")
                         // Copy table structure and data
                         db.execSQL("CREATE TABLE backup.$tableName AS SELECT * FROM $tableName")
                     }
