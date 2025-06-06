@@ -28,7 +28,10 @@ import kotlinx.coroutines.launch
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import android.database.sqlite.SQLiteDatabase
 
 class DriveSyncActivity : AppCompatActivity() {
     private lateinit var buttonGoogleSignIn: SignInButton
@@ -86,10 +89,16 @@ class DriveSyncActivity : AppCompatActivity() {
             }
             setupDriveService()
             CoroutineScope(Dispatchers.IO).launch {
-                createBackupFile(this@DriveSyncActivity)
-                val result = uploadFileToDrive()
-                runOnUiThread {
-                    Toast.makeText(this@DriveSyncActivity, result, Toast.LENGTH_SHORT).show()
+                val backupSuccessful = createBackupFile(this@DriveSyncActivity)
+                if (backupSuccessful) {
+                    val result = uploadFileToDrive()
+                    runOnUiThread {
+                        Toast.makeText(this@DriveSyncActivity, result, Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    runOnUiThread {
+                        Toast.makeText(this@DriveSyncActivity, "Backup creation failed. Upload cancelled.", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -99,13 +108,22 @@ class DriveSyncActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            setupDriveService()
-            CoroutineScope(Dispatchers.IO).launch {
-                val result = downloadFileFromDrive()
-                runOnUiThread {
-                    Toast.makeText(this@DriveSyncActivity, result, Toast.LENGTH_SHORT).show()
+
+            // Show confirmation dialog
+            AlertDialog.Builder(this)
+                .setTitle("Confirm Restore")
+                .setMessage("This will replace all current data with the backup data from Google Drive. This action cannot be undone. Do you want to continue?")
+                .setPositiveButton("Yes") { _, _ ->
+                    setupDriveService()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val result = downloadFileFromDrive()
+                        runOnUiThread {
+                            Toast.makeText(this@DriveSyncActivity, result, Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
-            }
+                .setNegativeButton("No", null)
+                .show()
         }
 
         buttonSignOut.setOnClickListener {
@@ -193,6 +211,17 @@ class DriveSyncActivity : AppCompatActivity() {
                 ?.execute()
             val filePath = getFileStreamPath("backup.db")
             if (!filePath.exists()) return "Backup file not found"
+
+            // --- Add verification step here ---
+            try {
+                SQLiteDatabase.openDatabase(filePath.absolutePath, null, SQLiteDatabase.OPEN_READONLY).close()
+                Log.d("DriveSync", "Local backup file is a valid SQLite database.")
+            } catch (e: Exception) {
+                Log.e("DriveSync", "Local backup file is NOT a valid SQLite database before upload.", e)
+                return "Error: Created backup file is corrupted locally."
+            }
+            // --- End verification step ---
+
             val fileContent = FileInputStream(filePath).readBytes()
             val contentStream = ByteArrayContent.fromString("application/octet-stream", String(fileContent))
             if (fileList != null && fileList.files.isNotEmpty()) {
@@ -218,6 +247,7 @@ class DriveSyncActivity : AppCompatActivity() {
 
     private fun downloadFileFromDrive(): String {
         return try {
+            Log.d("DriveSync", "downloadFileFromDrive function started.")
             val folderName = "MoneyMoney"
             // 1. Find the MoneyMoney folder
             val folderList = driveService?.files()?.list()
@@ -237,26 +267,141 @@ class DriveSyncActivity : AppCompatActivity() {
             val file = fileList?.files?.firstOrNull() ?: return "No backup found in MoneyMoney folder"
             val output = ByteArrayOutputStream()
             driveService?.files()?.get(file.id)?.executeMediaAndDownloadTo(output)
-            val filePath = getFileStreamPath("backup.db")
-            FileOutputStream(filePath).use { it.write(output.toByteArray()) }
-            "Download successful"
+
+            // 3. Save the backup file
+            val backupPath = getFileStreamPath("backup.db")
+            FileOutputStream(backupPath).use { it.write(output.toByteArray()) }
+            Log.d("DriveSync", "Backup file saved locally at: ${backupPath.absolutePath}")
+            if (!backupPath.exists()) {
+                Log.e("DriveSync", "Local backup file does not exist after saving.")
+                return "Error: Local backup file not saved."
+            }
+            Log.d("DriveSync", "Local backup file size: ${backupPath.length()}")
+
+            // 4. Restore the database
+            val dbPath = getDatabasePath("MoneyMoney.db")
+            Log.d("DriveSync", "Current database path: ${dbPath.absolutePath}")
+
+            // Close all database connections
+            Log.d("DriveSync", "Closing database connections...")
+            val dbHelperForClose = DatabaseHelper(this)
+            dbHelperForClose.close()
+            Log.d("DriveSync", "Database connections closed.")
+
+            // Check if the current database file exists before replacement
+            if (!dbPath.exists()) {
+                 Log.w("DriveSync", "Current database file does not exist before replacement.")
+            }
+
+            // Replace the current database with the backup
+            Log.d("DriveSync", "Attempting to replace database file...")
+            try {
+                backupPath.copyTo(dbPath, overwrite = true)
+                Log.d("DriveSync", "Database file replaced successfully.")
+                if (!dbPath.exists()) {
+                    Log.e("DriveSync", "Database file does not exist after replacement.")
+                     return "Error: Database file replacement failed."
+                }
+                Log.d("DriveSync", "New database file size: ${dbPath.length()}")
+
+            } catch (e: Exception) {
+                Log.e("DriveSync", "Error replacing database file", e)
+                return "Error replacing database file: ${e.localizedMessage}"
+            }
+
+            // Reopen the database
+            Log.d("DriveSync", "Reopening database...")
+            val dbHelperForReopen = DatabaseHelper(this)
+            dbHelperForReopen.writableDatabase
+            Log.d("DriveSync", "Database reopened.")
+
+            "Download and restore successful"
         } catch (e: Exception) {
             Log.e("DriveSync", "Download error", e)
             "Download error: ${e.localizedMessage}"
         }
     }
 
-    private fun createBackupFile(context: android.content.Context) {
+    private fun createBackupFile(context: android.content.Context): Boolean {
         try {
-            val dbPath = context.getDatabasePath("MoneyMoney.db")
+            val dbHelper = DatabaseHelper(context)
+            val db = dbHelper.readableDatabase
+
+            // Get the backup file path
             val backupPath = context.getFileStreamPath("backup.db")
-                java.io.FileInputStream(dbPath).use { input ->
-                java.io.FileOutputStream(backupPath).use { output ->
-                    input.copyTo(output)
-                }
+
+            // Delete existing backup if it exists
+            if (backupPath.exists()) {
+                backupPath.delete()
             }
+
+            // Create a new backup using SQLite's backup API
+            val backupDb = SQLiteDatabase.openDatabase(
+                backupPath.absolutePath,
+                null,
+                SQLiteDatabase.CREATE_IF_NECESSARY
+            )
+
+            // Perform the backup
+            db.beginTransaction()
+            try {
+                // Attach the backup database
+                db.execSQL("ATTACH DATABASE '${backupPath.absolutePath}' AS backup")
+
+                // Copy all tables
+                val tables = db.rawQuery(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != 'android_metadata'",
+                    null
+                )
+
+                tables.use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val tableName = cursor.getString(0)
+                        // Drop table if it exists in backup before creating
+                        db.execSQL("DROP TABLE IF EXISTS backup.$tableName")
+                        // Copy table structure and data
+                        db.execSQL("CREATE TABLE backup.$tableName AS SELECT * FROM $tableName")
+                    }
+                }
+
+                // Copy indices
+                val indices = db.rawQuery(
+                    "SELECT name, sql FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'",
+                    null
+                )
+
+                indices.use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val indexName = cursor.getString(0)
+                        val indexSql = cursor.getString(1)
+                        // Create index in backup database
+                        db.execSQL(indexSql.replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS"))
+                    }
+                }
+
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
+                // Detach the backup database
+                db.execSQL("DETACH DATABASE backup")
+            }
+
+            // Close both databases
+            backupDb.close()
+            db.close()
+            dbHelper.close()
+
+            Log.d("DriveSync", "Backup created successfully at: ${backupPath.absolutePath}")
+            return true
         } catch (e: Exception) {
             Log.e("DriveSync", "Backup creation failed", e)
+            // Delete the partially created backup file if it exists
+            val backupPath = context.getFileStreamPath("backup.db")
+            if (backupPath.exists()) {
+                Log.w("DriveSync", "Deleting partially created backup file: ${backupPath.absolutePath}")
+                backupPath.delete()
+            }
+            return false
         }
     }
 }

@@ -5,41 +5,40 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="From Date"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
-
-    <TextView
-        android:id="@+id/fromDateText"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="To Date"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
+        <TextView
+            android:id="@+id/fromDateText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="12dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="Select From Date"
+            android:textSize="16sp"
+            android:gravity="center_vertical"
+            android:layout_marginEnd="8dp" />
 
-    <TextView
-        android:id="@+id/toDateText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:textSize="16sp"
-        android:layout_marginBottom="24dp"/>
+        <TextView
+            android:id="@+id/toDateText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="12dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="Select To Date"
+            android:textSize="16sp"
+            android:gravity="center_vertical"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/exportButton"
@@ -47,6 +46,7 @@
         android:layout_height="wrap_content"
         android:text="Export"
         android:textAllCaps="false"
-        android:padding="12dp"/>
+        android:padding="12dp"
+        android:layout_marginTop="24dp"/>
 
 </LinearLayout> 

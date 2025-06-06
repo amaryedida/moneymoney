@@ -13,6 +13,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.Calendar
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.ScrollView
+import android.view.MotionEvent
+
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -33,6 +38,8 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var investmentDao: InvestmentDao
     private lateinit var incomeDao: IncomeDao
     private lateinit var expenseDao: ExpenseDao
+    private lateinit var customScrollbarLeft: View
+    private lateinit var scrollViewDashboard: ScrollView
 
     private lateinit var buttonViewReports: Button
     private lateinit var fabAdd: FloatingActionButton
@@ -72,6 +79,8 @@ class DashboardActivity : AppCompatActivity() {
             fabAdd = findViewById(R.id.fabAdd)
             fabDriveSync = findViewById(R.id.fabDriveSync)
             bottomNavigation = findViewById(R.id.bottomNavigationView)
+            customScrollbarLeft = findViewById(R.id.customScrollbarLeft)
+            scrollViewDashboard = findViewById(R.id.scrollViewDashboard)
             Log.d(TAG, "All views initialized successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing views", e)
@@ -85,6 +94,52 @@ class DashboardActivity : AppCompatActivity() {
             recyclerViewGoalProgress.layoutManager = LinearLayoutManager(this)
             goalProgressAdapter = GoalProgressAdapter(emptyList())
             recyclerViewGoalProgress.adapter = goalProgressAdapter
+
+            recyclerViewGoalProgress.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+
+                    val verticalScrollRange = recyclerView.computeVerticalScrollRange()
+                    val verticalScrollOffset = recyclerView.computeVerticalScrollOffset()
+                    val verticalScrollExtent = recyclerView.computeVerticalScrollExtent()
+
+                    if (verticalScrollRange <= verticalScrollExtent) {
+                        customScrollbarLeft.visibility = View.GONE
+                    } else {
+                        customScrollbarLeft.visibility = View.VISIBLE
+
+                        val scrollbarHeight = (verticalScrollExtent.toFloat() / verticalScrollRange.toFloat() * customScrollbarLeft.height.toFloat()).toInt()
+                        val lp = customScrollbarLeft.layoutParams as FrameLayout.LayoutParams
+                        lp.height = scrollbarHeight.coerceAtLeast(resources.getDimensionPixelSize(R.dimen.min_scrollbar_height))
+                        customScrollbarLeft.layoutParams = lp
+
+                        val scrollbarMaxTravel = customScrollbarLeft.height - scrollbarHeight
+                        val scrollbarPosition = (verticalScrollOffset.toFloat() / (verticalScrollRange - verticalScrollExtent).toFloat() * scrollbarMaxTravel.toFloat()).toInt()
+                        customScrollbarLeft.translationY = scrollbarPosition.toFloat()
+                    }
+                }
+            })
+
+            // Prevent parent ScrollView from intercepting touches when RecyclerView is scrolled
+            recyclerViewGoalProgress.setOnTouchListener {
+                v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        // Disallow parent from intercepting touch events
+                        scrollViewDashboard.requestDisallowInterceptTouchEvent(true)
+                        false // Allow RecyclerView to handle the touch event
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        // Allow parent to intercept touch events again when touch is released
+                        scrollViewDashboard.requestDisallowInterceptTouchEvent(false)
+                        false // Allow RecyclerView to handle the touch event
+                    }
+                    else -> {
+                        false // Allow RecyclerView to handle other touch events
+                    }
+                }
+            }
+
             Log.d(TAG, "RecyclerView setup completed successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Error setting up RecyclerView", e)
@@ -281,6 +336,17 @@ class DashboardActivity : AppCompatActivity() {
                 )
             }
             goalProgressAdapter.updateGoals(goalProgressList)
+
+            recyclerViewGoalProgress.post {
+                val verticalScrollRange = recyclerViewGoalProgress.computeVerticalScrollRange()
+                val verticalScrollExtent = recyclerViewGoalProgress.computeVerticalScrollExtent()
+                if (verticalScrollRange <= verticalScrollExtent) {
+                    customScrollbarLeft.visibility = View.GONE
+                } else {
+                    customScrollbarLeft.visibility = View.VISIBLE
+                }
+            }
+
         } catch (e: Exception) {
             Log.e(TAG, "Error loading goal progress", e)
             Toast.makeText(this, "Error loading goal progress", Toast.LENGTH_SHORT).show()

@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.activity.result.contract.ActivityResultContracts
 
 class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionListener {
 
@@ -28,6 +29,19 @@ class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionLi
     private var selectedCurrency: String? = null
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    // Define the ActivityResultLauncher for editing incomes
+    private val editIncomeLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // If the edit was successful, reload the incomes
+            Log.d("IncomeListActivity", "Income edit successful, reloading incomes")
+            loadIncomes()
+        } else {
+            Log.d("IncomeListActivity", "Income edit cancelled or failed")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -162,7 +176,8 @@ class IncomeListActivity : AppCompatActivity(), IncomeListAdapter.OnItemActionLi
     override fun onEditItem(income: IncomeObject) {
         val intent = Intent(this, IncomeEntryActivity::class.java)
         intent.putExtra("EXTRA_INCOME", income)
-        startActivity(intent)
+        // Use the launcher to start the activity for result
+        editIncomeLauncher.launch(intent)
     }
 
     override fun onDeleteItem(income: IncomeObject) {

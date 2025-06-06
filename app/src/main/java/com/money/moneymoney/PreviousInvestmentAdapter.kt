@@ -36,15 +36,10 @@ class PreviousInvestmentAdapter(
         holder.valueTextView.text = String.format(Locale.getDefault(), "%.2f", currentInvestment.value)
         holder.categoryTextView.text = currentInvestment.category
         
-        // Display the goal name if it exists
-        if (currentInvestment.goalId != null) {
-            val goal = goalDao.getGoalById(currentInvestment.goalId)
-            if (goal != null) {
-                holder.goalTextView.visibility = View.VISIBLE
-                holder.goalTextView.text = "Goal: ${goal.name}"
-            } else {
-                holder.goalTextView.visibility = View.GONE
-            }
+        // Display the goal name if it exists in the InvestmentObject
+        if (currentInvestment.goalName != null) {
+            holder.goalTextView.visibility = View.VISIBLE
+            holder.goalTextView.text = "Goal: ${currentInvestment.goalName}"
         } else {
             holder.goalTextView.visibility = View.GONE
         }

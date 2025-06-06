@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.activity.result.contract.ActivityResultContracts
 
 class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItemActionListener {
     companion object {
@@ -31,6 +32,19 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
     private var selectedCurrency: String? = null
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    // Define the ActivityResultLauncher for editing investments
+    private val editInvestmentLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // If the edit was successful, reload the investments
+            Log.d(TAG, "Investment edit successful, reloading investments")
+            loadInvestments()
+        } else {
+            Log.d(TAG, "Investment edit cancelled or failed")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -202,10 +216,11 @@ class InvestmentListActivity : AppCompatActivity(), InvestmentListAdapter.OnItem
         try {
             val intent = Intent(this, InvestmentEntryActivity::class.java)
             intent.putExtra("EXTRA_INVESTMENT", investment)
-            startActivity(intent)
+            // Use the launcher to start the activity for result
+            editInvestmentLauncher.launch(intent)
         } catch (e: Exception) {
-            Log.e(TAG, "Error starting InvestmentEntryActivity", e)
-            Toast.makeText(this, "Error opening investment: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Error starting InvestmentEntryActivity for edit", e)
+            Toast.makeText(this, "Error opening investment for editing: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

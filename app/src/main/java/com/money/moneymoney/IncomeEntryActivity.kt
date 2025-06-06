@@ -18,6 +18,8 @@ import java.util.Locale
 import android.widget.ArrayAdapter
 import java.util.Date
 import java.text.SimpleDateFormat
+import android.view.View
+import android.widget.FrameLayout
 
 class IncomeEntryActivity : AppCompatActivity() {
 
@@ -32,10 +34,11 @@ class IncomeEntryActivity : AppCompatActivity() {
     private lateinit var editTextIncomeComment: EditText
     private lateinit var buttonSaveIncome: Button
     private lateinit var bottomNavigationView: BottomNavigationView
-    private lateinit var textViewPreviousIncome: TextView
-    private lateinit var recyclerViewPreviousIncome: RecyclerView
+    private lateinit var textViewPreviousIncomes: TextView
+    private lateinit var recyclerViewPreviousIncomes: RecyclerView
+    private lateinit var customScrollbarLeft: View
     private lateinit var incomeDao: IncomeDao
-    private lateinit var previousIncomeAdapter: PreviousIncomeAdapter
+    private lateinit var previousIncomesAdapter: PreviousIncomeAdapter
     private var selectedDateInMillis: Long = Calendar.getInstance().timeInMillis
     private var editingIncome: IncomeObject? = null
 
@@ -54,8 +57,8 @@ class IncomeEntryActivity : AppCompatActivity() {
         editTextIncomeComment = findViewById(R.id.editTextIncomeComment)
         buttonSaveIncome = findViewById(R.id.buttonSaveIncome)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
-        textViewPreviousIncome = findViewById(R.id.textViewPreviousIncome)
-        recyclerViewPreviousIncome = findViewById(R.id.recyclerViewPreviousIncome)
+        textViewPreviousIncomes = findViewById(R.id.textViewPreviousIncomes)
+        recyclerViewPreviousIncomes = findViewById(R.id.recyclerViewPreviousIncomes)
 
         // Initialize spinners
         val currencies = resources.getStringArray(R.array.currencies)
@@ -107,9 +110,42 @@ class IncomeEntryActivity : AppCompatActivity() {
         }
         
         // Set up RecyclerView for previous incomes
-        recyclerViewPreviousIncome.layoutManager = LinearLayoutManager(this)
-        previousIncomeAdapter = PreviousIncomeAdapter(emptyList())
-        recyclerViewPreviousIncome.adapter = previousIncomeAdapter
+        recyclerViewPreviousIncomes.layoutManager = LinearLayoutManager(this)
+        previousIncomesAdapter = PreviousIncomeAdapter(emptyList())
+        recyclerViewPreviousIncomes.adapter = previousIncomesAdapter
+
+        // Get reference to custom scrollbar
+        customScrollbarLeft = findViewById(R.id.customScrollbarLeft)
+
+        // Add scroll listener to RecyclerView
+        recyclerViewPreviousIncomes.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val verticalScrollRange = recyclerView.computeVerticalScrollRange()
+                val verticalScrollOffset = recyclerView.computeVerticalScrollOffset()
+                val verticalScrollExtent = recyclerView.computeVerticalScrollExtent()
+
+                if (verticalScrollRange <= verticalScrollExtent) {
+                    // Content is not scrollable, hide scrollbar
+                    customScrollbarLeft.visibility = View.GONE
+                } else {
+                    // Content is scrollable, show and position scrollbar
+                    customScrollbarLeft.visibility = View.VISIBLE
+
+                    // Calculate scrollbar height
+                    val scrollbarHeight = (verticalScrollExtent.toFloat() / verticalScrollRange.toFloat() * customScrollbarLeft.height.toFloat()).toInt()
+                    val lp = customScrollbarLeft.layoutParams as FrameLayout.LayoutParams
+                    lp.height = scrollbarHeight.coerceAtLeast(resources.getDimensionPixelSize(R.dimen.min_scrollbar_height))
+                    customScrollbarLeft.layoutParams = lp
+
+                    // Calculate scrollbar position
+                    val scrollbarMaxTravel = customScrollbarLeft.height - scrollbarHeight
+                    val scrollbarPosition = (verticalScrollOffset.toFloat() / (verticalScrollRange - verticalScrollExtent).toFloat() * scrollbarMaxTravel.toFloat()).toInt()
+                    customScrollbarLeft.translationY = scrollbarPosition.toFloat()
+                }
+            }
+        })
 
         // Load initial previous incomes
         loadPreviousIncomes()
@@ -214,6 +250,7 @@ class IncomeEntryActivity : AppCompatActivity() {
                 )
                 incomeDao.updateIncome(updatedIncome)
                 Toast.makeText(this, "Income updated successfully", Toast.LENGTH_SHORT).show()
+                setResult(RESULT_OK)
                 finish()
             }
         } else {
@@ -223,7 +260,18 @@ class IncomeEntryActivity : AppCompatActivity() {
 
     private fun loadPreviousIncomes() {
         val lastTenIncomes = incomeDao.getLastTenIncomes()
-        previousIncomeAdapter.updateData(lastTenIncomes)
+        previousIncomesAdapter.updateData(lastTenIncomes)
+
+        // Ensure scrollbar visibility is updated after data load
+        recyclerViewPreviousIncomes.post { // Post to ensure layout pass is complete
+            val verticalScrollRange = recyclerViewPreviousIncomes.computeVerticalScrollRange()
+            val verticalScrollExtent = recyclerViewPreviousIncomes.computeVerticalScrollExtent()
+            if (verticalScrollRange <= verticalScrollExtent) {
+                customScrollbarLeft.visibility = View.GONE
+            } else {
+                customScrollbarLeft.visibility = View.VISIBLE
+            }
+        }
     }
 
     override fun onDestroy() {

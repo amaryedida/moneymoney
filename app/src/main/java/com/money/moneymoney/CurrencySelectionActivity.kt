@@ -19,15 +19,19 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import java.text.SimpleDateFormat
 import java.util.*
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import java.text.ParseException
 
 class CurrencySelectionActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_CURRENCY = "selected_currency"
+        private const val TAG = "CurrencySelectionActivity"
     }
 
     private var selectedCurrency: String? = null
-    private val TAG = "CurrencySelectionActivity"
     private var fromDate: Calendar = Calendar.getInstance()
     private var toDate: Calendar = Calendar.getInstance()
     private var currentExportType: String = ""
@@ -35,7 +39,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_currency_selection)
-
+        
         val buttonAed: Button = findViewById(R.id.button_aed)
         val buttonInr: Button = findViewById(R.id.button_inr)
         val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottomNavigationView)
@@ -106,12 +110,15 @@ class CurrencySelectionActivity : AppCompatActivity() {
         }
 
         buttonExportIncome.setOnClickListener {
+            Log.d(TAG, "Export Income button clicked")
             showDateRangeDialog("income")
         }
         buttonExportExpense.setOnClickListener {
+            Log.d(TAG, "Export Expense button clicked")
             showDateRangeDialog("expense")
         }
         buttonExportInvestment.setOnClickListener {
+            Log.d(TAG, "Export Investment button clicked")
             showDateRangeDialog("investment")
         }
     }
@@ -143,6 +150,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
     }
 
     private fun showDateRangeDialog(exportType: String) {
+        Log.d(TAG, "Showing date range dialog for export type: $exportType")
         currentExportType = exportType
         val dialog = Dialog(this)
         dialog.setContentView(R.layout.export_date_range)
@@ -158,6 +166,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
         toDateText.text = "Select To Date"
 
         fromDateText.setOnClickListener {
+            Log.d(TAG, "From date text clicked")
             showDatePicker(fromDate) { calendar ->
                 fromDate = calendar
                 updateDateText(fromDateText, calendar)
@@ -166,6 +175,7 @@ class CurrencySelectionActivity : AppCompatActivity() {
         }
 
         toDateText.setOnClickListener {
+            Log.d(TAG, "To date text clicked")
             showDatePicker(toDate) { calendar ->
                 toDate = calendar
                 updateDateText(toDateText, calendar)
@@ -174,7 +184,9 @@ class CurrencySelectionActivity : AppCompatActivity() {
         }
 
         exportButton.setOnClickListener {
+            Log.d(TAG, "Export button clicked in dialog")
             if (validateDateRange(fromDate, toDate)) {
+                Log.d(TAG, "Date range validated, proceeding with export")
                 when (exportType) {
                     "income" -> exportIncomeListAsCSV()
                     "expense" -> exportExpenseListAsCSV()
@@ -182,11 +194,13 @@ class CurrencySelectionActivity : AppCompatActivity() {
                 }
                 dialog.dismiss()
             } else {
+                Log.d(TAG, "Invalid date range")
                 Toast.makeText(this, "To date must be after from date", Toast.LENGTH_SHORT).show()
             }
         }
 
         dialog.show()
+        Log.d(TAG, "Date range dialog shown")
     }
 
     private fun validateAndEnableExport(exportButton: Button, fromDateText: TextView, toDateText: TextView) {
@@ -219,76 +233,148 @@ class CurrencySelectionActivity : AppCompatActivity() {
 
     private fun isDateInRange(date: String, fromDate: Calendar, toDate: Calendar): Boolean {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val transactionDate = dateFormat.parse(date)
-        return transactionDate != null && 
-               !transactionDate.before(fromDate.time) && 
-               !transactionDate.after(toDate.time)
+        val transactionDate: Date? = try {
+            dateFormat.parse(date)
+        } catch (e: ParseException) {
+            Log.e(TAG, "Error parsing date string: $date", e)
+            null // Return null if parsing fails
+        }
+
+        // Adjust toDate to include the entire last day
+        val adjustedToDate = toDate.clone() as Calendar
+        adjustedToDate.add(Calendar.DAY_OF_MONTH, 1)
+
+        // Create a Calendar for the transaction date to compare calendar days
+        val transactionCalendar = Calendar.getInstance().apply {
+            if (transactionDate != null) time = transactionDate
+        }
+
+        // Check if transaction date is on or after the start of fromDate
+        val isAfterOrEqualToFromDate = transactionCalendar.timeInMillis >= fromDate.timeInMillis
+
+        // Check if transaction date is before the start of the day after toDate
+        val isBeforeAdjustedToDate = transactionCalendar.timeInMillis < adjustedToDate.timeInMillis
+
+        return transactionDate != null && isAfterOrEqualToFromDate && isBeforeAdjustedToDate
+    }
+
+    private fun escapeCsvTextField(field: String?): String {
+        if (field == null) return ""
+        // Enclose field in double quotes and escape existing double quotes
+        return "\"" + field.replace("\"", "\"\"") + "\""
     }
 
     private fun exportIncomeListAsCSV() {
         try {
+            Log.d(TAG, "Starting income export...")
             val incomeDao = IncomeDao(this)
             val incomes = incomeDao.getIncomesByCurrency("INR") + incomeDao.getIncomesByCurrency("AED")
-            val filteredIncomes = incomes.filter { isDateInRange(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.date)), fromDate, toDate) }
+            Log.d(TAG, "Retrieved ${incomes.size} incomes")
+            
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val filteredIncomes = incomes.filter { isDateInRange(dateFormat.format(java.util.Date(it.date)), fromDate, toDate) }
+            Log.d(TAG, "Filtered to ${filteredIncomes.size} incomes")
             
             val file = File(cacheDir, "income_list.csv")
-            val writer = OutputStreamWriter(FileOutputStream(file))
-            writer.write("ID,Currency,Category,Value,Comment,Date\n")
-            for (income in filteredIncomes) {
-                writer.write("${income.id.toString()},${income.currency},${income.category},\"${income.value.toString()}\",${income.comment ?: ""},${income.date}\n")
+            Log.d(TAG, "Creating file at: ${file.absolutePath}")
+            
+            FileOutputStream(file).use { fos ->
+                OutputStreamWriter(fos).use { writer ->
+                    writer.write("ID,Currency,Category,Value,Comment,Date\n")
+                    for (income in filteredIncomes) {
+                        writer.write("${income.id},${income.currency},${income.category},${income.value},${escapeCsvTextField(income.comment)},${dateFormat.format(java.util.Date(income.date))}\n")
+                    }
+                }
             }
-            writer.close()
+            Log.d(TAG, "File written successfully")
+            
             shareCSVFile(file, "Income List exported successfully!")
         } catch (e: Exception) {
+            Log.e(TAG, "Failed to export income list", e)
             Toast.makeText(this, "Failed to export income list: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun exportExpenseListAsCSV() {
         try {
+            Log.d(TAG, "Starting expense export...")
             val expenseDao = ExpenseDao(this)
             val expenses = expenseDao.getExpensesByCurrency("INR") + expenseDao.getExpensesByCurrency("AED")
-            val filteredExpenses = expenses.filter { isDateInRange(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.date)), fromDate, toDate) }
+            Log.d(TAG, "Retrieved ${expenses.size} expenses")
+            
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val filteredExpenses = expenses.filter { isDateInRange(dateFormat.format(java.util.Date(it.date)), fromDate, toDate) }
+            Log.d(TAG, "Filtered to ${filteredExpenses.size} expenses")
             
             val file = File(cacheDir, "expense_list.csv")
-            val writer = OutputStreamWriter(FileOutputStream(file))
-            writer.write("ID,Currency,Category,Value,Comment,Date\n")
-            for (expense in filteredExpenses) {
-                writer.write("${expense.id.toString()},${expense.currency},${expense.category},\"${expense.value.toString()}\",${expense.comment ?: ""},${expense.date}\n")
+            Log.d(TAG, "Creating file at: ${file.absolutePath}")
+            
+            FileOutputStream(file).use { fos ->
+                OutputStreamWriter(fos).use { writer ->
+                    writer.write("ID,Currency,Category,Value,Comment,Date\n")
+                    for (expense in filteredExpenses) {
+                        writer.write("${expense.id},${expense.currency},${expense.category},${expense.value},${escapeCsvTextField(expense.comment)},${dateFormat.format(java.util.Date(expense.date))}\n")
+                    }
+                }
             }
-            writer.close()
+            Log.d(TAG, "File written successfully")
+            
             shareCSVFile(file, "Expense List exported successfully!")
         } catch (e: Exception) {
+            Log.e(TAG, "Failed to export expense list", e)
             Toast.makeText(this, "Failed to export expense list: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun exportInvestmentListAsCSV() {
         try {
+            Log.d(TAG, "Starting investment export...")
             val investmentDao = InvestmentDao(this)
             val investments = investmentDao.getInvestmentsByCurrency("INR") + investmentDao.getInvestmentsByCurrency("AED")
-            val filteredInvestments = investments.filter { isDateInRange(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it.date)), fromDate, toDate) }
+            Log.d(TAG, "Retrieved ${investments.size} investments")
+            
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val filteredInvestments = investments.filter { isDateInRange(dateFormat.format(java.util.Date(it.date)), fromDate, toDate) }
+            Log.d(TAG, "Filtered to ${filteredInvestments.size} investments")
             
             val file = File(cacheDir, "investment_list.csv")
-            val writer = OutputStreamWriter(FileOutputStream(file))
-            writer.write("ID,Currency,Category,Value,Comment,Date,GoalId,GoalName\n")
-            for (investment in filteredInvestments) {
-                writer.write("${investment.id.toString()},${investment.currency},${investment.category},\"${investment.value.toString()}\",${investment.comment ?: ""},${investment.date},${investment.goalId?.toString() ?: ""},${investment.goalName ?: ""}\n")
+            Log.d(TAG, "Creating file at: ${file.absolutePath}")
+            
+            FileOutputStream(file).use { fos ->
+                OutputStreamWriter(fos).use { writer ->
+                    writer.write("ID,Currency,Category,Value,Comment,Date,GoalId,GoalName\n")
+                    for (investment in filteredInvestments) {
+                        writer.write("${investment.id},${investment.currency},${investment.category},${investment.value},${escapeCsvTextField(investment.comment)},${dateFormat.format(java.util.Date(investment.date))},${investment.goalId ?: ""},${escapeCsvTextField(investment.goalName)}\n")
+                    }
+                }
             }
-            writer.close()
+            Log.d(TAG, "File written successfully")
+            
             shareCSVFile(file, "Investment List exported successfully!")
         } catch (e: Exception) {
+            Log.e(TAG, "Failed to export investment list", e)
             Toast.makeText(this, "Failed to export investment list: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun shareCSVFile(file: File, successMessage: String) {
-        val uri = FileProvider.getUriForFile(this, "$packageName.provider", file)
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = "text/csv"
-        intent.putExtra(Intent.EXTRA_STREAM, uri)
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        startActivity(Intent.createChooser(intent, "Share CSV"))
-        Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show()
+        try {
+            Log.d(TAG, "Starting file share...")
+            val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+            Log.d(TAG, "File URI created: $uri")
+            
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/csv"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            
+            Log.d(TAG, "Starting share chooser...")
+            startActivity(Intent.createChooser(intent, "Share CSV"))
+            Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to share file", e)
+            Toast.makeText(this, "Failed to share file: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 }
