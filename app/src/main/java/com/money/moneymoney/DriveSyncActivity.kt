@@ -187,6 +187,7 @@ class DriveSyncActivity : AppCompatActivity() {
     private fun uploadFileToDrive(): String {
         return try {
             val folderName = "MoneyMoney"
+            Log.d("DriveSync", "Starting uploadFileToDrive function.")
             // 1. Check if folder exists, else create it
             val folderList = driveService?.files()?.list()
                 ?.setQ("mimeType='application/vnd.google-apps.folder' and name='$folderName' and trashed=false")
@@ -200,11 +201,17 @@ class DriveSyncActivity : AppCompatActivity() {
                 folderMetadata.name = folderName
                 folderMetadata.mimeType = "application/vnd.google-apps.folder"
                 val folder = driveService?.files()?.create(folderMetadata)?.setFields("id")?.execute()
+                Log.d("DriveSync", "Attempting to create Drive folder: $folderName")
                 folder?.id
             }
-            if (folderId == null) return "Failed to create/find Drive folder"
 
-            // 2. Check if backup.db exists in folder
+            if (folderId == null) {
+                Log.e("DriveSync", "Failed to create or find Drive folder: $folderName")
+                return "Failed to create/find Drive folder"
+            }
+            Log.d("DriveSync", "MoneyMoney Drive folder ID: $folderId")
+
+            // 2. Check if backup.db exists in the folder
             val fileList = driveService?.files()?.list()
                 ?.setQ("name='backup.db' and '$folderId' in parents and trashed=false")
                 ?.setSpaces("drive")
@@ -212,6 +219,8 @@ class DriveSyncActivity : AppCompatActivity() {
             val filePath = getFileStreamPath("backup.db")
             if (!filePath.exists()) return "Backup file not found"
 
+            Log.d("DriveSync", "Local backup file path: ${filePath.absolutePath}")
+            Log.d("DriveSync", "Local backup file size: ${filePath.length()} bytes")
             // --- Add verification step here ---
             try {
                 SQLiteDatabase.openDatabase(filePath.absolutePath, null, SQLiteDatabase.OPEN_READONLY).close()
@@ -225,6 +234,7 @@ class DriveSyncActivity : AppCompatActivity() {
             val fileContent = FileInputStream(filePath).readBytes()
             val contentStream = ByteArrayContent.fromString("application/octet-stream", String(fileContent))
             if (fileList != null && fileList.files.isNotEmpty()) {
+                Log.d("DriveSync", "backup.db found on Drive. Updating existing file.")
                 // File exists, update it
                 val fileId = fileList.files[0].id
                 val driveFile = DriveFile()
@@ -233,12 +243,14 @@ class DriveSyncActivity : AppCompatActivity() {
                 if (updatedFile != null) "Upload (replace) successful: ${updatedFile.id}" else "Upload failed"
             } else {
                 // File does not exist, create it
+                Log.d("DriveSync", "backup.db not found on Drive. Creating new file.")
                 val driveFile = DriveFile()
                 driveFile.name = "backup.db"
                 driveFile.parents = listOf(folderId)
                 val createdFile = driveService?.files()?.create(driveFile, contentStream)?.setFields("id")?.execute()
                 if (createdFile != null) "Upload successful: ${createdFile.id}" else "Upload failed"
             }
+            Log.d("DriveSync", "uploadFileToDrive function finished.")
         } catch (e: Exception) {
             Log.e("DriveSync", "Upload error", e)
             "Upload error: ${e.localizedMessage}"
@@ -249,6 +261,7 @@ class DriveSyncActivity : AppCompatActivity() {
         return try {
             Log.d("DriveSync", "downloadFileFromDrive function started.")
             val folderName = "MoneyMoney"
+
             // 1. Find the MoneyMoney folder
             val folderList = driveService?.files()?.list()
                 ?.setQ("mimeType='application/vnd.google-apps.folder' and name='$folderName' and trashed=false")
@@ -256,10 +269,15 @@ class DriveSyncActivity : AppCompatActivity() {
                 ?.execute()
             val folderId = if (folderList != null && folderList.files.isNotEmpty()) {
                 folderList.files[0].id
+                Log.d("DriveSync", "Found MoneyMoney Drive folder ID: ${folderList.files[0].id}")
+                folderList.files[0].id
             } else {
+                Log.w("DriveSync", "No MoneyMoney folder found on Drive.")
                 return "No MoneyMoney folder found on Drive"
             }
+
             // 2. Find backup.db in the folder
+            Log.d("DriveSync", "Searching for backup.db in folder: $folderId")
             val fileList = driveService?.files()?.list()
                 ?.setQ("name='backup.db' and '$folderId' in parents and trashed=false")
                 ?.setSpaces("drive")
@@ -267,6 +285,7 @@ class DriveSyncActivity : AppCompatActivity() {
             val file = fileList?.files?.firstOrNull() ?: return "No backup found in MoneyMoney folder"
             val output = ByteArrayOutputStream()
             driveService?.files()?.get(file.id)?.executeMediaAndDownloadTo(output)
+            Log.d("DriveSync", "backup.db found and downloaded from Drive. File ID: ${file.id}")
 
             // 3. Save the backup file
             val backupPath = getFileStreamPath("backup.db")
@@ -277,6 +296,15 @@ class DriveSyncActivity : AppCompatActivity() {
                 return "Error: Local backup file not saved."
             }
             Log.d("DriveSync", "Local backup file size: ${backupPath.length()}")
+
+            // --- Add integrity check here after download ---
+            try {
+                SQLiteDatabase.openDatabase(backupPath.absolutePath, null, SQLiteDatabase.OPEN_READONLY).close()
+                Log.d("DriveSync", "Downloaded backup file is a valid SQLite database locally.")
+            } catch (e: Exception) {
+                Log.e("DriveSync", "Downloaded backup file is NOT a valid SQLite database locally.", e)
+                return "Error: Downloaded backup file is corrupted."
+            }
 
             // 4. Restore the database
             val dbPath = getDatabasePath("MoneyMoney.db")
@@ -316,6 +344,7 @@ class DriveSyncActivity : AppCompatActivity() {
             Log.d("DriveSync", "Database reopened.")
 
             "Download and restore successful"
+            Log.d("DriveSync", "downloadFileFromDrive function finished.")
         } catch (e: Exception) {
             Log.e("DriveSync", "Download error", e)
             "Download error: ${e.localizedMessage}"
@@ -325,13 +354,22 @@ class DriveSyncActivity : AppCompatActivity() {
     private fun createBackupFile(context: android.content.Context): Boolean {
         try {
             val dbHelper = DatabaseHelper(context)
+            Log.d("DriveSync", "Starting createBackupFile function.")
             val db = dbHelper.readableDatabase
+            Log.d("DriveSync", "Accessed readable database.")
 
             // Get the backup file path
             val backupPath = context.getFileStreamPath("backup.db")
+            Log.d("DriveSync", "Target backup file path: ${backupPath.absolutePath}")
 
             // Delete existing backup if it exists
             if (backupPath.exists()) {
+                Log.d("DriveSync", "Existing backup file found at ${backupPath.absolutePath}. Deleting.")
+                if (backupPath.delete()) {
+                    Log.d("DriveSync", "Existing backup file deleted successfully.")
+                } else {
+                    Log.w("DriveSync", "Failed to delete existing backup file.")
+                }
                 backupPath.delete()
             }
 
@@ -339,8 +377,10 @@ class DriveSyncActivity : AppCompatActivity() {
             val backupDb = SQLiteDatabase.openDatabase(
                 backupPath.absolutePath,
                 null,
-                SQLiteDatabase.CREATE_IF_NECESSARY
+                SQLiteDatabase.CREATE_IF_NECESSARY or SQLiteDatabase.OPEN_READWRITE
             )
+            Log.d("DriveSync", "Opened backup database in CREATE_IF_NECESSARY mode.")
+
 
             // Perform the backup
             db.beginTransaction()
@@ -348,6 +388,7 @@ class DriveSyncActivity : AppCompatActivity() {
                 // Attach the backup database
                 db.execSQL("ATTACH DATABASE '${backupPath.absolutePath}' AS backup")
 
+                Log.d("DriveSync", "Attached backup database.")
                 // Copy all tables
                 val tables = db.rawQuery(
                     "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != 'android_metadata'",
@@ -357,6 +398,7 @@ class DriveSyncActivity : AppCompatActivity() {
                 tables.use { cursor ->
                     while (cursor.moveToNext()) {
                         val tableName = cursor.getString(0)
+                        Log.d("DriveSync", "Copying table: $tableName")
                         // Drop table if it exists in backup before creating
                         db.execSQL("DROP TABLE IF EXISTS backup.$tableName")
                         // Copy table structure and data
@@ -365,6 +407,7 @@ class DriveSyncActivity : AppCompatActivity() {
                 }
 
                 // Copy indices
+                Log.d("DriveSync", "Copying indices.")
                 val indices = db.rawQuery(
                     "SELECT name, sql FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'",
                     null
@@ -374,6 +417,7 @@ class DriveSyncActivity : AppCompatActivity() {
                     while (cursor.moveToNext()) {
                         val indexName = cursor.getString(0)
                         val indexSql = cursor.getString(1)
+                        Log.d("DriveSync", "Copying index: $indexName")
                         // Create index in backup database
                         db.execSQL(indexSql.replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS"))
                     }
@@ -382,13 +426,16 @@ class DriveSyncActivity : AppCompatActivity() {
                 db.setTransactionSuccessful()
             } finally {
                 db.endTransaction()
+                Log.d("DriveSync", "Transaction ended.")
                 // Detach the backup database
                 db.execSQL("DETACH DATABASE backup")
+                Log.d("DriveSync", "Detached backup database.")
             }
 
             // Close both databases
             backupDb.close()
             db.close()
+            Log.d("DriveSync", "Closed original and backup databases.")
             dbHelper.close()
 
             Log.d("DriveSync", "Backup created successfully at: ${backupPath.absolutePath}")
@@ -401,6 +448,7 @@ class DriveSyncActivity : AppCompatActivity() {
                 Log.w("DriveSync", "Deleting partially created backup file: ${backupPath.absolutePath}")
                 backupPath.delete()
             }
+            Log.e("DriveSync", "createBackupFile function finished with failure.")
             return false
         }
     }
