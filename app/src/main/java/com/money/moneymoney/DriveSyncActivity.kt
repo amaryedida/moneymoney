@@ -207,53 +207,57 @@ class DriveSyncActivity : AppCompatActivity() {
 
             if (folderId == null) {
                 Log.e("DriveSync", "Failed to create or find Drive folder: $folderName")
-                return "Failed to create/find Drive folder"
-            }
-            Log.d("DriveSync", "MoneyMoney Drive folder ID: $folderId")
-
-            // 2. Check if backup.db exists in the folder
-            val fileList = driveService?.files()?.list()
-                ?.setQ("name='backup.db' and '$folderId' in parents and trashed=false")
-                ?.setSpaces("drive")
-                ?.execute()
-            val filePath = getFileStreamPath("backup.db")
-            if (!filePath.exists()) return "Backup file not found"
-
-            Log.d("DriveSync", "Local backup file path: ${filePath.absolutePath}")
-            Log.d("DriveSync", "Local backup file size: ${filePath.length()} bytes")
-            // --- Add verification step here ---
-            try {
-                SQLiteDatabase.openDatabase(filePath.absolutePath, null, SQLiteDatabase.OPEN_READONLY).close()
-                Log.d("DriveSync", "Local backup file is a valid SQLite database.")
-            } catch (e: Exception) {
-                Log.e("DriveSync", "Local backup file is NOT a valid SQLite database before upload.", e)
-                return "Error: Created backup file is corrupted locally."
-            }
-            // --- End verification step ---
-
-            val fileContent = FileInputStream(filePath).readBytes()
-            val contentStream = ByteArrayContent.fromString("application/octet-stream", String(fileContent))
-            if (fileList != null && fileList.files.isNotEmpty()) {
-                Log.d("DriveSync", "backup.db found on Drive. Updating existing file.")
-                // File exists, update it
-                val fileId = fileList.files[0].id
-                val driveFile = DriveFile()
-                driveFile.name = "backup.db"
-                val updatedFile = driveService?.files()?.update(fileId, driveFile, contentStream)?.setFields("id")?.execute()
-                if (updatedFile != null) "Upload (replace) successful: ${updatedFile.id}" else "Upload failed"
+                "Failed to create/find Drive folder" // Explicitly return String
             } else {
-                // File does not exist, create it
-                Log.d("DriveSync", "backup.db not found on Drive. Creating new file.")
-                val driveFile = DriveFile()
-                driveFile.name = "backup.db"
-                driveFile.parents = listOf(folderId)
-                val createdFile = driveService?.files()?.create(driveFile, contentStream)?.setFields("id")?.execute()
-                if (createdFile != null) "Upload successful: ${createdFile.id}" else "Upload failed"
+                Log.d("DriveSync", "MoneyMoney Drive folder ID: $folderId")
+
+                // 2. Check if backup.db exists in the folder
+                val fileList = driveService?.files()?.list()
+                    ?.setQ("name='backup.db' and '$folderId' in parents and trashed=false")
+                    ?.setSpaces("drive")
+                    ?.execute()
+                val filePath = getFileStreamPath("backup.db")
+                if (!filePath.exists()) "Backup file not found" // Explicitly return String
+                else {
+                    Log.d("DriveSync", "Local backup file path: ${filePath.absolutePath}")
+                    Log.d("DriveSync", "Local backup file size: ${filePath.length()} bytes")
+                    // --- Add verification step here ---
+                    try {
+                        SQLiteDatabase.openDatabase(filePath.absolutePath, null, SQLiteDatabase.OPEN_READONLY).close()
+                        Log.d("DriveSync", "Local backup file is a valid SQLite database.")
+                    } catch (e: Exception) {
+                        Log.e("DriveSync", "Local backup file is NOT a valid SQLite database before upload.", e)
+                        "Error: Created backup file is corrupted locally." // Explicitly return String
+                    }
+                    // --- End verification step ---
+
+                    val fileContent = FileInputStream(filePath).readBytes()
+                    val contentStream = ByteArrayContent.fromString("application/octet-stream", String(fileContent))
+                    if (fileList != null && fileList.files.isNotEmpty()) {
+                        Log.d("DriveSync", "backup.db found on Drive. Updating existing file.")
+                        // File exists, update it
+                        val fileId = fileList.files[0].id
+                        val driveFile = DriveFile()
+                        driveFile.name = "backup.db"
+                        val updatedFile = driveService?.files()?.update(fileId, driveFile, contentStream)?.setFields("id")?.execute()
+                        if (updatedFile != null) "Upload (replace) successful: ${updatedFile.id}" else "Upload failed" // Explicitly return String
+                    } else {
+                        // File does not exist, create it
+                        Log.d("DriveSync", "backup.db not found on Drive. Creating new file.")
+                        val driveFile = DriveFile()
+                        driveFile.name = "backup.db"
+                        driveFile.parents = listOf(folderId)
+                        val createdFile = driveService?.files()?.create(driveFile, contentStream)?.setFields("id")?.execute()
+                        if (createdFile != null) "Upload successful: ${createdFile.id}" else "Upload failed" // Explicitly return String
+                    }
+                }
             }
             Log.d("DriveSync", "uploadFileToDrive function finished.")
+            // Need a final return statement here as well to cover all paths
+            "Upload process completed" // Explicitly return String
         } catch (e: Exception) {
             Log.e("DriveSync", "Upload error", e)
-            "Upload error: ${e.localizedMessage}"
+            "Upload error: ${e.localizedMessage}" // Explicitly return String
         }
     }
 
@@ -268,86 +272,95 @@ class DriveSyncActivity : AppCompatActivity() {
                 ?.setSpaces("drive")
                 ?.execute()
             val folderId = if (folderList != null && folderList.files.isNotEmpty()) {
-                folderList.files[0].id
                 Log.d("DriveSync", "Found MoneyMoney Drive folder ID: ${folderList.files[0].id}")
                 folderList.files[0].id
             } else {
                 Log.w("DriveSync", "No MoneyMoney folder found on Drive.")
-                return "No MoneyMoney folder found on Drive"
+                "No MoneyMoney folder found on Drive" // Explicitly return String
             }
 
-            // 2. Find backup.db in the folder
-            Log.d("DriveSync", "Searching for backup.db in folder: $folderId")
-            val fileList = driveService?.files()?.list()
-                ?.setQ("name='backup.db' and '$folderId' in parents and trashed=false")
-                ?.setSpaces("drive")
-                ?.execute()
-            val file = fileList?.files?.firstOrNull() ?: return "No backup found in MoneyMoney folder"
-            val output = ByteArrayOutputStream()
-            driveService?.files()?.get(file.id)?.executeMediaAndDownloadTo(output)
-            Log.d("DriveSync", "backup.db found and downloaded from Drive. File ID: ${file.id}")
+            if (folderId == null || folderId is String) {
+                // If folderId is null or already a String error message from the if/else
+                folderId as String // Cast to String as it's already a String or null
+            } else {
+                // 2. Find backup.db in the folder
+                Log.d("DriveSync", "Searching for backup.db in folder: $folderId")
+                val fileList = driveService?.files()?.list()
+                    ?.setQ("name='backup.db' and '$folderId' in parents and trashed=false")
+                    ?.setSpaces("drive")
+                    ?.execute()
+                val file = fileList?.files?.firstOrNull()
+                if (file == null) "No backup found in MoneyMoney folder" // Explicitly return String
+                else {
+                    val output = ByteArrayOutputStream()
+                    driveService?.files()?.get(file.id)?.executeMediaAndDownloadTo(output)
+                    Log.d("DriveSync", "backup.db found and downloaded from Drive. File ID: ${file.id}")
 
-            // 3. Save the backup file
-            val backupPath = getFileStreamPath("backup.db")
-            FileOutputStream(backupPath).use { it.write(output.toByteArray()) }
-            Log.d("DriveSync", "Backup file saved locally at: ${backupPath.absolutePath}")
-            if (!backupPath.exists()) {
-                Log.e("DriveSync", "Local backup file does not exist after saving.")
-                return "Error: Local backup file not saved."
-            }
-            Log.d("DriveSync", "Local backup file size: ${backupPath.length()}")
+                    // 3. Save the backup file
+                    val backupPath = getFileStreamPath("backup.db")
+                    FileOutputStream(backupPath).use { it.write(output.toByteArray()) }
+                    Log.d("DriveSync", "Backup file saved locally at: ${backupPath.absolutePath}")
+                    if (!backupPath.exists()) {
+                        Log.e("DriveSync", "Local backup file does not exist after saving.")
+                        "Error: Local backup file not saved." // Explicitly return String
+                    } else {
+                        Log.d("DriveSync", "Local backup file size: ${backupPath.length()}")
 
-            // --- Add integrity check here after download ---
-            try {
-                SQLiteDatabase.openDatabase(backupPath.absolutePath, null, SQLiteDatabase.OPEN_READONLY).close()
-                Log.d("DriveSync", "Downloaded backup file is a valid SQLite database locally.")
-            } catch (e: Exception) {
-                Log.e("DriveSync", "Downloaded backup file is NOT a valid SQLite database locally.", e)
-                return "Error: Downloaded backup file is corrupted."
-            }
+                        // --- Add integrity check here after download ---
+                        try {
+                            SQLiteDatabase.openDatabase(backupPath.absolutePath, null, SQLiteDatabase.OPEN_READONLY).close()
+                            Log.d("DriveSync", "Downloaded backup file is a valid SQLite database locally.")
+                        } catch (e: Exception) {
+                            Log.e("DriveSync", "Downloaded backup file is NOT a valid SQLite database locally.", e)
+                            "Error: Downloaded backup file is corrupted." // Explicitly return String
+                        }
+                        // --- End integrity check ---
 
-            // 4. Restore the database
-            val dbPath = getDatabasePath("MoneyMoney.db")
-            Log.d("DriveSync", "Current database path: ${dbPath.absolutePath}")
+                        // 4. Restore the database
+                        val dbPath = getDatabasePath("MoneyMoney.db")
+                        Log.d("DriveSync", "Current database path: ${dbPath.absolutePath}")
 
-            // Close all database connections
-            Log.d("DriveSync", "Closing database connections...")
-            val dbHelperForClose = DatabaseHelper(this)
-            dbHelperForClose.close()
-            Log.d("DriveSync", "Database connections closed.")
+                        // Close all database connections
+                        Log.d("DriveSync", "Closing database connections...")
+                        val dbHelperForClose = DatabaseHelper(this)
+                        dbHelperForClose.close()
+                        Log.d("DriveSync", "Database connections closed.")
 
-            // Check if the current database file exists before replacement
-            if (!dbPath.exists()) {
-                 Log.w("DriveSync", "Current database file does not exist before replacement.")
-            }
+                        // Check if the current database file exists before replacement
+                        if (!dbPath.exists()) {
+                             Log.w("DriveSync", "Current database file does not exist before replacement.")
+                        }
 
-            // Replace the current database with the backup
-            Log.d("DriveSync", "Attempting to replace database file...")
-            try {
-                backupPath.copyTo(dbPath, overwrite = true)
-                Log.d("DriveSync", "Database file replaced successfully.")
-                if (!dbPath.exists()) {
-                    Log.e("DriveSync", "Database file does not exist after replacement.")
-                     return "Error: Database file replacement failed."
+                        // Replace the current database with the backup
+                        Log.d("DriveSync", "Attempting to replace database file...")
+                        try {
+                            backupPath.copyTo(dbPath, overwrite = true)
+                            Log.d("DriveSync", "Database file replaced successfully.")
+                            if (!dbPath.exists()) {
+                                Log.e("DriveSync", "Database file does not exist after replacement.")
+                                 "Error: Database file replacement failed." // Explicitly return String
+                            } else {
+                                Log.d("DriveSync", "New database file size: ${dbPath.length()}")
+
+                                // Reopen the database
+                                Log.d("DriveSync", "Reopening database...")
+                                val dbHelperForReopen = DatabaseHelper(this)
+                                dbHelperForReopen.writableDatabase
+                                Log.d("DriveSync", "Database reopened.")
+
+                                "Download and restore successful" // Explicitly return String
+                            }
+
+                        } catch (e: Exception) {
+                            Log.e("DriveSync", "Error replacing database file", e)
+                            "Error replacing database file: ${e.localizedMessage}" // Explicitly return String
+                        }
+                    }
                 }
-                Log.d("DriveSync", "New database file size: ${dbPath.length()}")
-
-            } catch (e: Exception) {
-                Log.e("DriveSync", "Error replacing database file", e)
-                return "Error replacing database file: ${e.localizedMessage}"
             }
-
-            // Reopen the database
-            Log.d("DriveSync", "Reopening database...")
-            val dbHelperForReopen = DatabaseHelper(this)
-            dbHelperForReopen.writableDatabase
-            Log.d("DriveSync", "Database reopened.")
-
-            "Download and restore successful"
-            Log.d("DriveSync", "downloadFileFromDrive function finished.")
         } catch (e: Exception) {
             Log.e("DriveSync", "Download error", e)
-            "Download error: ${e.localizedMessage}"
+            "Download error: ${e.localizedMessage}" // Explicitly return String
         }
     }
 
