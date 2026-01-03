@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".DashboardActivity">
 
     <ScrollView
@@ -24,11 +25,13 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/textViewFinancialSummaryTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Financial Summary (Current Month)"
+                android:text="Financial Summary\n(Current Month)"
                 android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
                 android:textStyle="bold"
+                android:lineSpacingExtra="4dp"
                 android:layout_marginBottom="16dp" />
 
             <!-- INR Card -->

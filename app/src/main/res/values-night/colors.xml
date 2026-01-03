@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Re-defining base colors is not strictly necessary if they are in the default colors.xml, -->
+    <!-- but it can be useful for clarity and for tweaking them for the dark theme if needed. -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#80CBC4</color>
+    <color name="teal_700">#009688</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="green_200">#A5D6A7</color>
+    <color name="green_500">#4CAF50</color>
+    <color name="red_500">#F44336</color>
+
+    <!-- Dark Theme Overrides -->
+    <color name="background_light">#FAFAFA</color> <!-- Not used in dark theme, but good to have -->
+    <color name="background_dark">#121212</color> <!-- Dark background -->
+    <color name="surface">#1E1E1E</color> <!-- A slightly lighter surface for cards, etc. -->
+    <color name="on_surface">#E0E0E0</color> <!-- Light text color for on-surface content -->
+    <color name="on_background">#E0E0E0</color> <!-- Light text color for on-background content -->
+</resources>
