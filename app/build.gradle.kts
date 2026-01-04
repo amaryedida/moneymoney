@@ -111,7 +111,7 @@ configurations.all {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -127,8 +127,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.recyclerview)
     implementation("com.google.android.material:material:1.12.0")
     
     // Google Sign-In and Drive API dependencies with exclusions
@@ -154,9 +154,9 @@ dependencies {
     }
     
     // Add explicit guava dependency to resolve conflicts
-    implementation("com.google.guava:guava:32.1.3-android")
+    implementation(libs.guava)
     
     // Google Identity Services
-    implementation("com.google.android.gms:play-services-auth:21.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation(libs.play.services.auth)
+    implementation(libs.googleid)
 }
