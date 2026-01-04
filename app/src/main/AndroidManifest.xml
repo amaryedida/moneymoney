@@ -67,6 +67,7 @@
             android:exported="false"
             android:label="Add Expense"
             android:parentActivityName=".DashboardActivity"
+            android:windowSoftInputMode="adjustPan"
             android:theme="@style/Theme.MoneyMoney">
         </activity>
 
@@ -75,6 +76,7 @@
             android:exported="false"
             android:label="Add Goal"
             android:parentActivityName=".DashboardActivity"
+            android:windowSoftInputMode="adjustPan"
             android:theme="@style/Theme.MoneyMoney">
         </activity>
 
@@ -83,6 +85,7 @@
             android:exported="false"
             android:label="Add Income"
             android:parentActivityName=".DashboardActivity"
+            android:windowSoftInputMode="adjustPan"
             android:theme="@style/Theme.MoneyMoney">
         </activity>
 
@@ -91,6 +94,7 @@
             android:exported="false"
             android:label="Add Investment"
             android:parentActivityName=".DashboardActivity"
+            android:windowSoftInputMode="adjustPan"
             android:theme="@style/Theme.MoneyMoney">
         </activity>
 
