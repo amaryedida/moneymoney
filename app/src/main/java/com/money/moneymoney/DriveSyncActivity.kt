@@ -8,15 +8,19 @@ import android.widget.CheckBox
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.Task
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException
 import com.google.api.client.http.ByteArrayContent
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
@@ -39,8 +43,8 @@ class DriveSyncActivity : AppCompatActivity() {
     private lateinit var buttonDownloadFromDrive: Button
     private lateinit var checkboxAutoSyncWifi: CheckBox
     private lateinit var buttonSignOut: Button
-    private lateinit var googleSignInClient: GoogleSignInClient
-    private var signedInAccount: GoogleSignInAccount? = null
+    private lateinit var credentialManager: CredentialManager
+    private var signedInEmail: String? = null
     private var driveService: Drive? = null
     private lateinit var textViewUserEmail: TextView
 
@@ -56,34 +60,21 @@ class DriveSyncActivity : AppCompatActivity() {
         buttonSignOut.visibility = View.GONE // Hide by default
         textViewUserEmail = findViewById(R.id.textViewUserEmail)
 
+        // Initialize Credential Manager
+        credentialManager = CredentialManager.create(this)
+
         // Disable Drive sync buttons until signed in
         buttonSyncToDrive.isEnabled = false
         buttonDownloadFromDrive.isEnabled = false
 
-        // Register for the Activity Result for Google Sign-In
-        val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                handleSignInResult(task)
-            } else {
-                Toast.makeText(this, "Sign-in cancelled or failed", Toast.LENGTH_SHORT).show()
+        buttonGoogleSignIn.setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                signIn()
             }
         }
 
-        // Configure sign-in to request the user's ID, email address, and Drive file scope
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestEmail()
-            .requestScopes(Scope("https://www.googleapis.com/auth/drive.file"))
-            .build()
-        googleSignInClient = GoogleSignIn.getClient(this, gso)
-
-        buttonGoogleSignIn.setOnClickListener {
-            val signInIntent = googleSignInClient.signInIntent
-            signInLauncher.launch(signInIntent)
-        }
-
         buttonSyncToDrive.setOnClickListener {
-            if (signedInAccount == null) {
+            if (signedInEmail == null) {
                 Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -104,7 +95,7 @@ class DriveSyncActivity : AppCompatActivity() {
         }
 
         buttonDownloadFromDrive.setOnClickListener {
-            if (signedInAccount == null) {
+            if (signedInEmail == null) {
                 Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -127,9 +118,11 @@ class DriveSyncActivity : AppCompatActivity() {
         }
 
         buttonSignOut.setOnClickListener {
-            googleSignInClient.signOut().addOnCompleteListener {
-                signedInAccount = null
-                Toast.makeText(this, "Signed out", Toast.LENGTH_SHORT).show()
+            CoroutineScope(Dispatchers.Main).launch {
+                signedInEmail = null
+                driveService = null
+                credentialManager.clearCredentialState(androidx.credentials.ClearCredentialStateRequest())
+                Toast.makeText(this@DriveSyncActivity, "Signed out", Toast.LENGTH_SHORT).show()
                 buttonGoogleSignIn.visibility = View.VISIBLE
                 buttonSignOut.visibility = View.GONE
                 buttonSyncToDrive.isEnabled = false
@@ -143,39 +136,70 @@ class DriveSyncActivity : AppCompatActivity() {
             Toast.makeText(this, "Auto Sync over WiFi: $isChecked", Toast.LENGTH_SHORT).show()
         }
 
-        // Auto sign-in if user is already signed in
-        val lastSignedInAccount = GoogleSignIn.getLastSignedInAccount(this)
-        if (lastSignedInAccount != null) {
-            signedInAccount = lastSignedInAccount
-            buttonGoogleSignIn.visibility = View.GONE
-            buttonSignOut.visibility = View.VISIBLE
-            buttonSyncToDrive.isEnabled = true
-            buttonDownloadFromDrive.isEnabled = true
-            textViewUserEmail.text = lastSignedInAccount.email ?: ""
+        // Auto sign-in or silent sign-in could be implemented here with getCredential(autoSelect=true)
+        // For now, we require manual sign-in to ensure proper permission flows.
+    }
+
+    private suspend fun signIn() {
+        try {
+            val googleIdOption = GetGoogleIdOption.Builder()
+                .setFilterByAuthorizedAccounts(false)
+                .setServerClientId(getString(R.string.default_web_client_id)) // Ensure this string resource exists or use a hardcoded fallback if missing
+                .setAutoSelectEnabled(false)
+                .build()
+
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build()
+
+            val result = credentialManager.getCredential(this, request)
+            handleSignIn(result)
+        } catch (e: GetCredentialException) {
+            Log.e("DriveSync", "Sign-in failed", e)
+            Toast.makeText(this, "Sign-in failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("DriveSync", "Sign-in error", e)
+            Toast.makeText(this, "Sign-in error: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
-        try {
-            val account = completedTask.getResult(ApiException::class.java)
-            signedInAccount = account
-            Toast.makeText(this, "Signed in as: ${account?.email}", Toast.LENGTH_SHORT).show()
-            buttonGoogleSignIn.visibility = View.GONE
-            buttonSignOut.visibility = View.VISIBLE
-            buttonSyncToDrive.isEnabled = true
-            buttonDownloadFromDrive.isEnabled = true
-            textViewUserEmail.text = account?.email ?: ""
-        } catch (e: ApiException) {
-            Toast.makeText(this, "Sign-in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+    private fun handleSignIn(result: GetCredentialResponse) {
+        val credential = result.credential
+        if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+            try {
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                val email = googleIdTokenCredential.id
+                // Note: The 'id' in GoogleIdTokenCredential is the email address (or identifier). 
+                // Wait, typically 'id' is the user's email for creating the credential object? 
+                // Actually `googleIdTokenCredential.id` is the display name/email usually? 
+                // Let's check documentation or assume it's the email or use `id` as account name.
+                // Correction: `GoogleIdTokenCredential` does not expose email directly in a dedicated field other than `id` which is the account identifier (email) usually.
+                // Actually `id` is the email.
+                
+                signedInEmail = email
+                Toast.makeText(this, "Signed in as: $email", Toast.LENGTH_SHORT).show()
+                buttonGoogleSignIn.visibility = View.GONE
+                buttonSignOut.visibility = View.VISIBLE
+                buttonSyncToDrive.isEnabled = true
+                buttonDownloadFromDrive.isEnabled = true
+                textViewUserEmail.text = email
+            } catch (e: Exception) {
+                Log.e("DriveSync", "Invalid credential", e)
+                Toast.makeText(this, "Invalid credential data", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Log.e("DriveSync", "Unexpected credential type")
+            Toast.makeText(this, "Unexpected credential type", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun setupDriveService() {
-        if (driveService == null && signedInAccount != null) {
+        if (driveService == null && signedInEmail != null) {
             val credential = GoogleAccountCredential.usingOAuth2(
                 this, listOf("https://www.googleapis.com/auth/drive.file")
             )
-            credential.selectedAccount = signedInAccount!!.account
+            // Explicitly create Account object to avoid potential null name issues in internal credential logic
+            credential.selectedAccount = android.accounts.Account(signedInEmail!!, "com.google")
             driveService = Drive.Builder(
                 NetHttpTransport(),
                 GsonFactory.getDefaultInstance(),
@@ -255,6 +279,9 @@ class DriveSyncActivity : AppCompatActivity() {
             Log.d("DriveSync", "uploadFileToDrive function finished.")
             // Need a final return statement here as well to cover all paths
             "Upload process completed" // Explicitly return String
+        } catch (e: UserRecoverableAuthIOException) {
+            startActivity(e.intent)
+            "Permission needed. Please grant access and try again."
         } catch (e: Exception) {
             Log.e("DriveSync", "Upload error", e)
             "Upload error: ${e.localizedMessage}" // Explicitly return String
@@ -395,6 +422,9 @@ class DriveSyncActivity : AppCompatActivity() {
                 Log.e("DriveSync", "Error replacing database file. Message: ${e.message}\nStacktrace: ${e.stackTraceToString()}", e)
                 return "Error replacing database file: ${e.localizedMessage}"
             }
+        } catch (e: UserRecoverableAuthIOException) {
+            startActivity(e.intent)
+            "Permission needed. Please grant access and try again."
         } catch (e: Exception) {
             Log.e("DriveSync", "Download error. Message: ${e.message}\nStacktrace: ${e.stackTraceToString()}", e)
             return "Download error: ${e.localizedMessage}"

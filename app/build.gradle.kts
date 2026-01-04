@@ -132,9 +132,6 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     
     // Google Sign-In and Drive API dependencies with exclusions
-    implementation("com.google.android.gms:play-services-auth:21.2.0") {
-        exclude(group = "com.google.guava", module = "guava")
-    }
     implementation("com.google.api-client:google-api-client-android:2.8.0") {
         exclude(group = "com.google.guava", module = "guava")
         exclude(group = "org.apache.httpcomponents", module = "httpclient")
@@ -159,4 +156,6 @@ dependencies {
     // Google Identity Services
     implementation(libs.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
 }

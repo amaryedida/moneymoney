@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Money Money</string>
+    <!-- TODO: Replace with your actual Web Client ID from Google Cloud Console -->
+    <string name="default_web_client_id">914719869950-7ammh9d4s8t432d9kqvkjrvbqdahsijv.apps.googleusercontent.com</string>
 
     <string name="delete_expense">Delete Expense</string>
-    <string name="delete_income">Delete Income</string>
+    <string name="delete_income">Delete Income</string> 
     <string name="edit_income">Edit Income</string>
     <string name="edit_expense">Edit Expense</string>
     <string name="delete_investment">Delete Investment</string>
@@ -11,7 +13,7 @@
 
     <array name="currencies">
         <item>AED</item>
-        <item>INR</item>
+        <item>INR</item>                            
     </array>
 
     <array name="income_categories">
